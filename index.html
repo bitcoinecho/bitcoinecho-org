@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,13 +13,30 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://bitcoinecho.org">
 
+    <!-- Early theme detection to prevent flash -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
-    <style>
+<style>
         :root {
+            --font-serif: 'Libre Baskerville', Georgia, serif;
+            --font-mono: 'Courier Prime', 'Courier New', monospace;
+
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        /* Dark theme (default) */
+        [data-theme="dark"] {
             --color-bg: #0a0a0a;
             --color-bg-elevated: #111111;
             --color-surface: #1a1a1a;
@@ -29,12 +46,25 @@
             --color-text-dim: #555555;
             --color-accent: #ffffff;
             --color-glow: rgba(255, 255, 255, 0.03);
+            --color-symbol-invert: invert(1);
+            --color-nav-gradient: linear-gradient(to bottom, #0a0a0a 0%, transparent 100%);
+            --color-nav-solid: rgba(10, 10, 10, 0.95);
+        }
 
-            --font-serif: 'Libre Baskerville', Georgia, serif;
-            --font-mono: 'Courier Prime', 'Courier New', monospace;
-
-            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-            --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+        /* Light theme */
+        [data-theme="light"] {
+            --color-bg: #f8f6f3;
+            --color-bg-elevated: #ffffff;
+            --color-surface: #eeebe6;
+            --color-border: #d4d0c8;
+            --color-text: #1a1a1a;
+            --color-text-muted: #5a5a5a;
+            --color-text-dim: #8a8a8a;
+            --color-accent: #0a0a0a;
+            --color-glow: rgba(0, 0, 0, 0.03);
+            --color-symbol-invert: invert(0);
+            --color-nav-gradient: linear-gradient(to bottom, #f8f6f3 0%, transparent 100%);
+            --color-nav-solid: rgba(248, 246, 243, 0.95);
         }
 
         *, *::before, *::after {
@@ -56,6 +86,7 @@
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* Background pattern */
@@ -141,12 +172,12 @@
             width: 100%;
             z-index: 100;
             padding: 1.5rem 0;
-            background: linear-gradient(to bottom, var(--color-bg) 0%, transparent 100%);
+            background: var(--color-nav-gradient);
             transition: background 0.3s ease;
         }
 
         nav.scrolled {
-            background: rgba(10, 10, 10, 0.95);
+            background: var(--color-nav-solid);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
@@ -155,6 +186,57 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .theme-btn {
+            background: none;
+            border: 1px solid var(--color-border);
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            transition: all 0.3s var(--ease-out);
+            color: var(--color-text-muted);
+        }
+
+        .theme-btn:hover {
+            border-color: var(--color-text-dim);
+            color: var(--color-text);
+            transform: scale(1.05);
+        }
+
+        .theme-btn svg {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.3s var(--ease-out);
+        }
+
+        .theme-btn:hover svg {
+            transform: rotate(15deg);
+        }
+
+        .theme-btn .icon-sun,
+        .theme-btn .icon-moon {
+            display: none;
+        }
+
+        [data-theme="dark"] .theme-btn .icon-sun {
+            display: block;
+        }
+
+        [data-theme="light"] .theme-btn .icon-moon {
+            display: block;
         }
 
         .nav-logo {
@@ -229,7 +311,8 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            filter: invert(1);
+            filter: var(--color-symbol-invert);
+            transition: filter 0.3s ease;
         }
 
         /* Echo rings animation */
@@ -461,7 +544,7 @@
             background: var(--color-surface);
             border: 1px solid var(--color-border);
             position: relative;
-            transition: all 0.4s var(--ease-out);
+            transition: all 0.4s var(--ease-out), background-color 0.3s ease, border-color 0.3s ease;
         }
 
         .principle:hover {
@@ -521,7 +604,7 @@
             text-align: center;
             margin-bottom: -1px;
             background: var(--color-surface);
-            transition: all 0.3s ease;
+            transition: all 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
             position: relative;
         }
 
@@ -590,7 +673,7 @@
             padding: 1.5rem 2.5rem;
             border: 1px solid var(--color-border);
             background: var(--color-surface);
-            transition: all 0.3s var(--ease-out);
+            transition: all 0.3s var(--ease-out), background-color 0.3s ease, border-color 0.3s ease;
             text-align: center;
             position: relative;
         }
@@ -677,7 +760,8 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            filter: invert(1);
+            filter: var(--color-symbol-invert);
+            transition: filter 0.3s ease;
         }
 
         .cta h2 {
@@ -707,7 +791,7 @@
             padding: 1rem 2rem;
             border: 1px solid var(--color-border);
             background: transparent;
-            transition: all 0.3s var(--ease-out);
+            transition: all 0.3s var(--ease-out), border-color 0.3s ease;
             position: relative;
             overflow: hidden;
         }
@@ -769,7 +853,8 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            filter: invert(1);
+            filter: var(--color-symbol-invert);
+            transition: filter 0.3s ease;
         }
 
         .footer-text {
@@ -811,6 +896,10 @@
 
             .nav-links {
                 display: none;
+            }
+
+            .theme-toggle {
+                gap: 0;
             }
         }
 
@@ -868,13 +957,31 @@
     <nav id="nav">
         <div class="container nav-inner">
             <a href="#" class="nav-logo">Bitcoin Echo</a>
-            <ul class="nav-links">
-                <li><a href="#philosophy">Philosophy</a></li>
-                <li><a href="#principles">Principles</a></li>
-                <li><a href="#architecture">Architecture</a></li>
-                <li><a href="https://github.com/bitcoinecho/bitcoinecho-org/blob/main/bitcoin-echo-manifesto.md" target="_blank" rel="noopener noreferrer">Manifesto</a></li>
-                <li><a href="https://github.com/bitcoinecho/bitcoinecho-org/blob/main/bitcoin-echo-whitepaper.md" target="_blank" rel="noopener noreferrer">Whitepaper</a></li>
-            </ul>
+            <div class="theme-toggle">
+                <ul class="nav-links">
+                    <li><a href="#philosophy">Philosophy</a></li>
+                    <li><a href="#principles">Principles</a></li>
+                    <li><a href="#architecture">Architecture</a></li>
+                    <li><a href="https://github.com/bitcoinecho/bitcoinecho-org/blob/main/bitcoin-echo-manifesto.md" target="_blank" rel="noopener noreferrer">Manifesto</a></li>
+                    <li><a href="https://github.com/bitcoinecho/bitcoinecho-org/blob/main/bitcoin-echo-whitepaper.md" target="_blank" rel="noopener noreferrer">Whitepaper</a></li>
+                </ul>
+                <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
         </div>
     </nav>
 
@@ -1093,6 +1200,22 @@
     </footer>
 
     <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+
+        // Check for saved theme preference or default to dark
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
         // Evergreen copyright year
         document.getElementById('year').textContent = new Date().getFullYear();
 
