@@ -29,8 +29,14 @@
     <!-- Early theme detection to prevent flash -->
     <script>
         (function () {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else {
+                // Use system preference, default to dark if no preference
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            }
         })();
     </script>
 
@@ -1280,16 +1286,21 @@
         const themeToggle = document.getElementById('theme-toggle');
         const html = document.documentElement;
 
-        // Check for saved theme preference or default to dark
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        html.setAttribute('data-theme', savedTheme);
-
+        // Theme is already set by early detection script in <head>
+        // This listener handles manual toggles and saves preference
         themeToggle.addEventListener('click', () => {
             const currentTheme = html.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
             html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
+            localStorage.setItem('theme', newTheme); // Save user's explicit choice
+        });
+
+        // Listen for system theme changes (only if user hasn't set a preference)
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                html.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+            }
         });
 
         // Evergreen copyright year
