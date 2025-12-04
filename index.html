@@ -1,10 +1,21 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CHQTPHCD7L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-CHQTPHCD7L');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bitcoin Echo — The Last Implementation</title>
-    <meta name="description" content="A faithful implementation of the Bitcoin protocol, built for permanence. Not for continued development, but for preservation.">
+    <meta name="description"
+        content="A faithful implementation of the Bitcoin protocol, built for permanence. Not for continued development, but for preservation.">
     <meta name="theme-color" content="#0a0a0a">
 
     <!-- Open Graph -->
@@ -15,7 +26,7 @@
 
     <!-- Early theme detection to prevent flash -->
     <script>
-        (function() {
+        (function () {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
@@ -24,9 +35,11 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
 
-<style>
+    <style>
         :root {
             --font-serif: 'Libre Baskerville', Georgia, serif;
             --font-mono: 'Courier Prime', 'Courier New', monospace;
@@ -67,7 +80,9 @@
             --color-nav-solid: rgba(248, 246, 243, 0.95);
         }
 
-        *, *::before, *::after {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -100,25 +115,23 @@
             z-index: 0;
             opacity: 0.4;
             background-image:
-                radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.02) 0%, transparent 50%),
-                repeating-linear-gradient(
-                    0deg,
+                radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+                repeating-linear-gradient(0deg,
                     transparent,
                     transparent 100px,
-                    rgba(255,255,255,0.008) 100px,
-                    rgba(255,255,255,0.008) 101px
-                ),
-                repeating-linear-gradient(
-                    90deg,
+                    rgba(255, 255, 255, 0.008) 100px,
+                    rgba(255, 255, 255, 0.008) 101px),
+                repeating-linear-gradient(90deg,
                     transparent,
                     transparent 100px,
-                    rgba(255,255,255,0.008) 100px,
-                    rgba(255,255,255,0.008) 101px
-                );
+                    rgba(255, 255, 255, 0.008) 100px,
+                    rgba(255, 255, 255, 0.008) 101px);
         }
 
         /* Typography */
-        h1, h2, h3 {
+        h1,
+        h2,
+        h3 {
             font-weight: 400;
             letter-spacing: -0.01em;
         }
@@ -336,10 +349,21 @@
             animation: echoExpand 4s var(--ease-out) infinite;
         }
 
-        .echo-ring:nth-child(1) { animation-delay: 0s; }
-        .echo-ring:nth-child(2) { animation-delay: 1s; }
-        .echo-ring:nth-child(3) { animation-delay: 2s; }
-        .echo-ring:nth-child(4) { animation-delay: 3s; }
+        .echo-ring:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .echo-ring:nth-child(2) {
+            animation-delay: 1s;
+        }
+
+        .echo-ring:nth-child(3) {
+            animation-delay: 2s;
+        }
+
+        .echo-ring:nth-child(4) {
+            animation-delay: 3s;
+        }
 
         @keyframes echoExpand {
             0% {
@@ -347,6 +371,7 @@
                 height: 100%;
                 opacity: 0.5;
             }
+
             100% {
                 width: 250%;
                 height: 250%;
@@ -403,8 +428,17 @@
         }
 
         @keyframes scrollPulse {
-            0%, 100% { opacity: 0.3; transform: scaleY(1); }
-            50% { opacity: 0.8; transform: scaleY(1.2); }
+
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scaleY(1);
+            }
+
+            50% {
+                opacity: 0.8;
+                transform: scaleY(1.2);
+            }
         }
 
         @keyframes fadeInUp {
@@ -412,6 +446,7 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -467,7 +502,7 @@
             direction: rtl;
         }
 
-        .philosophy-block.reverse > * {
+        .philosophy-block.reverse>* {
             direction: ltr;
         }
 
@@ -493,7 +528,7 @@
             color: var(--color-text-muted);
         }
 
-        .philosophy-text p + p {
+        .philosophy-text p+p {
             margin-top: 1.5rem;
         }
 
@@ -512,11 +547,10 @@
             width: 1px;
             height: 100%;
             background: linear-gradient(to bottom,
-                transparent 0%,
-                var(--color-border) 10%,
-                var(--color-border) 90%,
-                transparent 100%
-            );
+                    transparent 0%,
+                    var(--color-border) 10%,
+                    var(--color-border) 90%,
+                    transparent 100%);
         }
 
         .principles-header {
@@ -951,6 +985,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="bg-pattern"></div>
 
@@ -962,23 +997,27 @@
                     <li><a href="#philosophy">Philosophy</a></li>
                     <li><a href="#principles">Principles</a></li>
                     <li><a href="#architecture">Architecture</a></li>
-                    <li><a href="https://github.com/bitcoinecho/bitcoinecho-org/blob/main/bitcoin-echo-manifesto.md" target="_blank" rel="noopener noreferrer">Manifesto</a></li>
-                    <li><a href="https://github.com/bitcoinecho/bitcoinecho-org/blob/main/bitcoin-echo-whitepaper.md" target="_blank" rel="noopener noreferrer">Whitepaper</a></li>
+                    <li><a href="https://github.com/bitcoinecho/bitcoinecho-org/blob/main/bitcoin-echo-manifesto.md"
+                            target="_blank" rel="noopener noreferrer">Manifesto</a></li>
+                    <li><a href="https://github.com/bitcoinecho/bitcoinecho-org/blob/main/bitcoin-echo-whitepaper.md"
+                            target="_blank" rel="noopener noreferrer">Whitepaper</a></li>
                 </ul>
                 <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
-                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"/>
-                        <line x1="12" y1="1" x2="12" y2="3"/>
-                        <line x1="12" y1="21" x2="12" y2="23"/>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                        <line x1="1" y1="12" x2="3" y2="12"/>
-                        <line x1="21" y1="12" x2="23" y2="12"/>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                     </svg>
-                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                     </svg>
                 </button>
             </div>
@@ -1023,8 +1062,10 @@
                             <cite>— Bitcoin Echo Manifesto</cite>
                         </blockquote>
                         <div class="philosophy-text">
-                            <p>The Bitcoin protocol hasn't changed since 2008. But the software implementing it never stops changing. Every update is a risk. Every refactor is a chance for divergence.</p>
-                            <p>What if we built software the way Bitcoin builds its chain? Append-only. Immutable. Final.</p>
+                            <p>The Bitcoin protocol hasn't changed since 2008. But the software implementing it never
+                                stops changing. Every update is a risk. Every refactor is a chance for divergence.</p>
+                            <p>What if we built software the way Bitcoin builds its chain? Append-only. Immutable.
+                                Final.</p>
                         </div>
                     </div>
                     <div class="philosophy-block reverse reveal">
@@ -1032,7 +1073,9 @@
                             "An echo does not editorialize. It faithfully reproduces what was said."
                         </blockquote>
                         <div class="philosophy-text">
-                            <p>Bitcoin Echo is not a new interpretation. It's a faithful transcription of Satoshi's protocol—built to outlast its creators, designed to be compiled and run by engineers in 2125 who have never heard of us.</p>
+                            <p>Bitcoin Echo is not a new interpretation. It's a faithful transcription of Satoshi's
+                                protocol—built to outlast its creators, designed to be compiled and run by engineers in
+                                2125 who have never heard of us.</p>
                             <p>We are not building something new. We are preserving something important.</p>
                         </div>
                     </div>
@@ -1052,35 +1095,43 @@
                     <div class="principle-number">01</div>
                     <div class="principle-content">
                         <h4>Zero External Dependencies</h4>
-                        <p>Every library is a liability. Every package manager is a bet on someone else's decisions. Bitcoin Echo depends on a C compiler and nothing else. There is no npm install. There is no supply chain.</p>
+                        <p>Every library is a liability. Every package manager is a bet on someone else's decisions.
+                            Bitcoin Echo depends on a C compiler and nothing else. There is no npm install. There is no
+                            supply chain.</p>
                     </div>
                 </article>
                 <article class="principle reveal">
                     <div class="principle-number">02</div>
                     <div class="principle-content">
                         <h4>Consensus Separated from Platform</h4>
-                        <p>The consensus engine makes no system calls. It is pure computation—bytes in, validity out. Operating systems change. The consensus engine does not.</p>
+                        <p>The consensus engine makes no system calls. It is pure computation—bytes in, validity out.
+                            Operating systems change. The consensus engine does not.</p>
                     </div>
                 </article>
                 <article class="principle reveal">
                     <div class="principle-number">03</div>
                     <div class="principle-content">
                         <h4>Small Enough to Audit</h4>
-                        <p>A single skilled programmer should be able to read and understand every line. We target 20,000 lines of heavily-commented C. No abstraction for its own sake. No cleverness.</p>
+                        <p>A single skilled programmer should be able to read and understand every line. We target
+                            20,000 lines of heavily-commented C. No abstraction for its own sake. No cleverness.</p>
                     </div>
                 </article>
                 <article class="principle reveal">
                     <div class="principle-number">04</div>
                     <div class="principle-content">
                         <h4>Pure C for Longevity</h4>
-                        <p>Not because it's the best language, but because it will outlive us. C compilers will exist as long as computers do. The Linux kernel proves that C can last for decades. So will Bitcoin Echo.</p>
+                        <p>Not because it's the best language, but because it will outlive us. C compilers will exist as
+                            long as computers do. The Linux kernel proves that C can last for decades. So will Bitcoin
+                            Echo.</p>
                     </div>
                 </article>
                 <article class="principle reveal">
                     <div class="principle-number">05</div>
                     <div class="principle-content">
                         <h4>Doors That Close</h4>
-                        <p>Upon completion, the repository will be archived. The signing keys will be published. Not compromised—intentionally released. So that no one can falsely claim authority to issue updates. The project will be finished.</p>
+                        <p>Upon completion, the repository will be archived. The signing keys will be published. Not
+                            compromised—intentionally released. So that no one can falsely claim authority to issue
+                            updates. The project will be finished.</p>
                     </div>
                 </article>
             </div>
@@ -1112,7 +1163,8 @@
                 </div>
             </div>
             <p class="architecture-note reveal">
-                The consensus engine is pure computation. It can be extracted, compiled independently, and verified against any specification—forever.
+                The consensus engine is pure computation. It can be extracted, compiled independently, and verified
+                against any specification—forever.
             </p>
         </div>
     </section>
@@ -1124,33 +1176,51 @@
                 <h2>Why Permanence Matters</h2>
             </div>
             <div class="document-links reveal">
-                <a href="https://github.com/bitcoinecho/bitcoinecho-org/blob/main/bitcoin-echo-manifesto.md" target="_blank" rel="noopener noreferrer" class="doc-link">
+                <a href="https://github.com/bitcoinecho/bitcoinecho-org/blob/main/bitcoin-echo-manifesto.md"
+                    target="_blank" rel="noopener noreferrer" class="doc-link">
                     <span class="doc-label">Read the Full</span>
                     <span class="doc-title">Manifesto</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
                 </a>
-                <a href="https://github.com/bitcoinecho/bitcoinecho-org/blob/main/bitcoin-echo-whitepaper.md" target="_blank" rel="noopener noreferrer" class="doc-link">
+                <a href="https://github.com/bitcoinecho/bitcoinecho-org/blob/main/bitcoin-echo-whitepaper.md"
+                    target="_blank" rel="noopener noreferrer" class="doc-link">
                     <span class="doc-label">Read the Full</span>
                     <span class="doc-title">Whitepaper</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
                 </a>
             </div>
             <div class="manifesto-content">
                 <div class="manifesto-excerpt reveal">
-                    <p>Bitcoin asks us to trust mathematics, not institutions. To verify, not believe. To run our own nodes and check the chain ourselves.</p>
+                    <p>Bitcoin asks us to trust mathematics, not institutions. To verify, not believe. To run our own
+                        nodes and check the chain ourselves.</p>
 
                     <p>But what good is verification if the verifier changes every six months?</p>
 
                     <p class="highlight">
-                        We want verification without expiration. We want software that exists the way the protocol exists: unchanging, reliable, permanent.
+                        We want verification without expiration. We want software that exists the way the protocol
+                        exists: unchanging, reliable, permanent.
                     </p>
 
-                    <p>We are building something else: a <span class="emphasis">frozen reference</span>. A verification artifact. Software that someone in 2125 can compile and run to check the chain, without trusting that a century of developers made compatible choices.</p>
+                    <p>We are building something else: a <span class="emphasis">frozen reference</span>. A verification
+                        artifact. Software that someone in 2125 can compile and run to check the chain, without trusting
+                        that a century of developers made compatible choices.</p>
 
                     <p>This is not abandonment. <span class="emphasis">This is completion.</span></p>
 
                     <p class="highlight">
-                        An echo does not editorialize. It does not improve upon the original. It faithfully reproduces what was said. And when the sound travels further than expected, a new echo carries it forward—faithful to the last, as the last was faithful to the first.
+                        An echo does not editorialize. It does not improve upon the original. It faithfully reproduces
+                        what was said. And when the sound travels further than expected, a new echo carries it
+                        forward—faithful to the last, as the last was faithful to the first.
                     </p>
                 </div>
             </div>
@@ -1164,19 +1234,22 @@
             </div>
             <h2>Help Us Build the Last Implementation</h2>
             <p class="cta-description">
-                If this resonates with you—if you believe Bitcoin deserves software as permanent as its protocol—we want to hear from you. Developers. Auditors. Funders. Critics.
+                If this resonates with you—if you believe Bitcoin deserves software as permanent as its protocol—we want
+                to hear from you. Developers. Auditors. Funders. Critics.
             </p>
             <div class="cta-links">
                 <a href="mailto:echo@bitcoinecho.org" class="cta-link">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                        <polyline points="22,6 12,13 2,6"/>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
                     </svg>
                     Email Us
                 </a>
                 <a href="https://github.com/bitcoinecho" target="_blank" rel="noopener noreferrer" class="cta-link">
                     <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        <path
+                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                     </svg>
                     GitHub
                 </a>
@@ -1194,7 +1267,8 @@
             </div>
             <div class="footer-links">
                 <a href="mailto:echo@bitcoinecho.org" class="footer-link">echo@bitcoinecho.org</a>
-                <a href="https://github.com/bitcoinecho" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+                <a href="https://github.com/bitcoinecho" target="_blank" rel="noopener noreferrer"
+                    class="footer-link">GitHub</a>
             </div>
         </div>
     </footer>
@@ -1253,7 +1327,7 @@
 
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
+            anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
@@ -1279,5 +1353,5 @@
         observer.observe(heroSymbol);
     </script>
 </body>
-</html>
 
+</html>
