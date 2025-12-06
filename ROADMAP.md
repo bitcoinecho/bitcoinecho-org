@@ -1339,6 +1339,40 @@ Everything else is embedded in source tree.
 
 ---
 
+## Companion Project: bitcoinecho-gui
+
+**Status:** Planned (begins after Session 9.3)
+
+A universal web application providing a visual interface to a running Bitcoin Echo node. Communicates exclusively via the JSON-RPC interface.
+
+**Prerequisites:** Session 9.3 (RPC Interface) — once RPC endpoints exist, GUI development can proceed in parallel with remaining core work.
+
+**Scope:**
+- Sync progress and chain visualization
+- Peer connectivity map
+- Block and transaction explorer
+- RPC console for advanced users
+
+**Key principles:**
+- Separate repository (`bitcoinecho-gui`)
+- Not ossified — may evolve independently of the frozen core
+- Technology stack to be determined in its own Phase 0
+- Required for MVP before community launch
+
+**Architecture:**
+```
+┌─────────────────────────┐
+│    bitcoinecho-gui      │  ← Web app (can evolve)
+│    (browser-based)      │
+└───────────┬─────────────┘
+            │ JSON-RPC
+┌───────────▼─────────────┐
+│     bitcoin-echo        │  ← Frozen daemon
+└─────────────────────────┘
+```
+
+---
+
 ## References
 
 - [Bitcoin Echo Whitepaper](bitcoin-echo-whitepaper.md)
