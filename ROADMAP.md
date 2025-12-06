@@ -1197,7 +1197,7 @@ Use this section to track completion status. Update after each session.
 | 2.2 RIPEMD-160 | Complete | Dec 2025 — 17/17 tests pass |
 | 2.3 secp256k1 Field | Complete | Dec 2025 — 19/19 tests pass |
 | 2.4 secp256k1 Group | Complete | Dec 2025 — 15/15 tests pass |
-| 2.5 ECDSA Verification | Not Started | |
+| 2.5 ECDSA Verification | Complete | Dec 2025 — 17/17 tests pass |
 | 2.6 Schnorr Verification | Not Started | |
 | 2.7 Signature Interface | Not Started | |
 
