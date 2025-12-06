@@ -1199,7 +1199,7 @@ Use this section to track completion status. Update after each session.
 | 2.4 secp256k1 Group | Complete | Dec 2025 — 15/15 tests pass |
 | 2.5 ECDSA Verification | Complete | Dec 2025 — 17/17 tests pass |
 | 2.6 Schnorr Verification | Complete | Dec 2025 — 20/20 tests pass |
-| 2.7 Signature Interface | Not Started | |
+| 2.7 Signature Interface | Complete | Dec 2025 — 13/13 tests pass |
 
 ### Phase 3: Consensus — Data Structures
 | Session | Status | Notes |
