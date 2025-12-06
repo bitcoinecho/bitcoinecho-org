@@ -2,7 +2,7 @@
 
 **A Living Document for Development Sessions**
 
-*Last Updated: December 2024*
+*Last Updated: December 5, 2025*
 
 ---
 
@@ -45,11 +45,12 @@ bitcoin-echo/             ← Sibling folder (C implementation, to be created)
 - [x] X presence established (@bitcoinechoorg)
 - [x] Symbol/logo created and deployed
 - [x] MIT License selected
+- [x] C implementation repository created
+- [x] Build system established
+- [x] Initial source code written (main.c prints version)
 
 ### Not Yet Started
-- [ ] C implementation repository created
-- [ ] Build system established
-- [ ] Any source code written
+- [ ] Core types and headers defined
 
 ---
 
@@ -1175,8 +1176,8 @@ Use this section to track completion status. Update after each session.
 ### Phase 0: Foundation
 | Session | Status | Notes |
 |---------|--------|-------|
-| 0.1 Repository Setup | Not Started | |
-| 0.2 Build System | Not Started | |
+| 0.1 Repository Setup | Complete | Dec 2025 |
+| 0.2 Build System | Complete | Dec 2025 |
 | 0.3 Core Types | Not Started | |
 
 ### Phase 1: Platform Abstraction
