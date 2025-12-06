@@ -1205,7 +1205,7 @@ Use this section to track completion status. Update after each session.
 | Session | Status | Notes |
 |---------|--------|-------|
 | 3.1 Varint Encoding | Complete | Dec 2025 — 50/50 tests pass |
-| 3.2 Transaction Structures | Not Started | |
+| 3.2 Transaction Structures | Complete | Dec 2025 — 15/15 tests pass |
 | 3.3 Block Structures | Not Started | |
 | 3.4 Merkle Trees | Not Started | |
 
