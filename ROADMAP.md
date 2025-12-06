@@ -1194,7 +1194,7 @@ Use this section to track completion status. Update after each session.
 | Session | Status | Notes |
 |---------|--------|-------|
 | 2.1 SHA-256 | Complete | Dec 2025 — 9/9 tests pass |
-| 2.2 RIPEMD-160 | Not Started | |
+| 2.2 RIPEMD-160 | Complete | Dec 2025 — 17/17 tests pass |
 | 2.3 secp256k1 Field | Not Started | |
 | 2.4 secp256k1 Group | Not Started | |
 | 2.5 ECDSA Verification | Not Started | |
