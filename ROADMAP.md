@@ -48,9 +48,10 @@ bitcoin-echo/             ← Sibling folder (C implementation, to be created)
 - [x] C implementation repository created
 - [x] Build system established
 - [x] Initial source code written (main.c prints version)
+- [x] Core types and headers defined (Phase 0 complete)
 
 ### Not Yet Started
-- [ ] Core types and headers defined
+- [ ] Platform abstraction layer
 
 ---
 
@@ -1178,7 +1179,7 @@ Use this section to track completion status. Update after each session.
 |---------|--------|-------|
 | 0.1 Repository Setup | Complete | Dec 2025 |
 | 0.2 Build System | Complete | Dec 2025 |
-| 0.3 Core Types | Not Started | |
+| 0.3 Core Types | Complete | Dec 2025 |
 
 ### Phase 1: Platform Abstraction
 | Session | Status | Notes |
