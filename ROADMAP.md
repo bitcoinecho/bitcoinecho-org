@@ -1206,7 +1206,7 @@ Use this section to track completion status. Update after each session.
 |---------|--------|-------|
 | 3.1 Varint Encoding | Complete | Dec 2025 — 50/50 tests pass |
 | 3.2 Transaction Structures | Complete | Dec 2025 — 15/15 tests pass |
-| 3.3 Block Structures | Not Started | |
+| 3.3 Block Structures | Complete | Dec 2025 — 14/14 tests pass |
 | 3.4 Merkle Trees | Not Started | |
 
 ### Phase 4: Consensus — Transaction Validation
