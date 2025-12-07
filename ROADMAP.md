@@ -1217,7 +1217,7 @@ Use this section to track completion status. Update after each session.
 | 4.3 Arithmetic/Logic Opcodes | Complete | Dec 2025 — 70/70 tests pass |
 | 4.4 Crypto Opcodes | Complete | Dec 2025 — 89/89 tests pass |
 | 4.5 SegWit Scripts | Complete | Dec 2025 — BIP-143 sighash, P2WPKH, P2WSH verification |
-| 4.6 Taproot Scripts | Not Started | |
+| 4.6 Taproot Scripts | Complete | Dec 2025 — BIP-341 sighash, key/script path, OP_CHECKSIGADD |
 | 4.7 P2SH Evaluation | Not Started | |
 | 4.8 Timelock Opcodes | Not Started | |
 | 4.9 Script Test Vectors | Not Started | |
