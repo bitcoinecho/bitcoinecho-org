@@ -1214,7 +1214,7 @@ Use this section to track completion status. Update after each session.
 |---------|--------|-------|
 | 4.1 Script Structures | Complete | Dec 2025 — 56/56 tests pass |
 | 4.2 Stack Machine | Complete | Dec 2025 — 66/66 tests pass |
-| 4.3 Arithmetic/Logic Opcodes | Not Started | |
+| 4.3 Arithmetic/Logic Opcodes | Complete | Dec 2025 — 70/70 tests pass |
 | 4.4 Crypto Opcodes | Not Started | |
 | 4.5 SegWit Scripts | Not Started | |
 | 4.6 Taproot Scripts | Not Started | |
