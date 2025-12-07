@@ -1221,7 +1221,7 @@ Use this section to track completion status. Update after each session.
 | 4.7 P2SH Evaluation | Complete | Dec 2025 — P2SH verification, push-only check, P2SH-SegWit |
 | 4.8 Timelock Opcodes | Complete | Dec 2025 — OP_CLTV, OP_CSV, 23/23 tests pass |
 | 4.9 Script Test Vectors | Complete | Dec 2025 — Bitcoin Core vectors, 960/982 pass (100% non-witness), SHA1 impl, DER validation |
-| 4.10 Transaction Validation | Not Started | |
+| 4.10 Transaction Validation | Complete | Dec 2025 — tx_validate.c, 30/30 tests pass, full validation with UTXO context |
 
 ### Phase 5: Consensus — Block Validation
 | Session | Status | Notes |
