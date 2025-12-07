@@ -1226,8 +1226,8 @@ Use this section to track completion status. Update after each session.
 ### Phase 5: Consensus — Block Validation
 | Session | Status | Notes |
 |---------|--------|-------|
-| 5.1 Header Validation | Not Started | |
-| 5.2 Difficulty Adjustment | Not Started | |
+| 5.1 Header Validation | Complete | Dec 2025 — PoW check, MTP timestamp, version bits, 29/29 tests pass |
+| 5.2 Difficulty Adjustment | Complete | Dec 2025 — Retargeting every 2016 blocks, factor-of-4 clamping, powlimit cap, 42/42 tests pass |
 | 5.3 Coinbase Validation | Not Started | |
 | 5.4 Full Block Validation | Not Started | |
 
