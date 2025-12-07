@@ -64,6 +64,22 @@ Most software projects seek contributions. They welcome feature requests, encour
 
 Bitcoin Echo is not a living project. Upon completion, the correct number of future features is zero. The correct number of accepted pull requests is zero. The repository will be archived. The signing keys will be published. The implementation will be complete in the same way that a novel or a mathematical proof is complete—not because no improvement is possible, but because the work has boundaries, and we have reached them.
 
+### 2.6 Why C
+
+Bitcoin Core is written in C++. Why does Bitcoin Echo use C instead?
+
+**Language stability.** C is finished. The C11 standard is essentially final, and C compilers have been stable for decades. C++, by contrast, evolves continuously—C++11, 14, 17, 20, 23—with each revision adding features, changing semantics, and creating pressure to "modernize." A frozen codebase requires a frozen language.
+
+**No hidden behavior.** In C, what you read is what executes. A function call is a function call. In C++, a single line can trigger implicit constructors, destructors, operator overloads, exception handling, virtual dispatch, and template instantiation. An auditor reading C can trace exactly what the CPU will do. An auditor reading C++ must also understand what the compiler might generate invisibly.
+
+**ABI stability.** C has a universal, stable application binary interface. C++ has name mangling (which varies by compiler), vtable layouts (implementation-defined), and exception handling mechanisms (platform-specific). Consensus code must behave identically everywhere. C's stable ABI makes this straightforward.
+
+**Minimal standard library.** Bitcoin Echo uses only `<stdint.h>`, `<stddef.h>`, and `<string.h>` from the standard library. The C++ Standard Template Library is vast, varies across implementations, and changes between versions. Every container, algorithm, and utility in the STL is code we would have to trust but cannot audit. C lets us depend on almost nothing.
+
+**Universal availability.** Every platform has a C compiler. C code from 1990 still compiles and runs identically today. C++ code from even 2010 may require substantial modification to compile with modern toolchains due to deprecated features and changed defaults.
+
+This is not a criticism of C++ as a language. It is recognition that C is the only mainstream language whose trajectory matches our own: implement once, correctly, and stop.
+
 ---
 
 ## 3. Architecture
