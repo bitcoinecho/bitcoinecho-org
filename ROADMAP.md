@@ -2,7 +2,7 @@
 
 **A Living Document for Development Sessions**
 
-*Last Updated: December 6, 2025*
+*Last Updated: December 7, 2025*
 
 ---
 
@@ -1219,7 +1219,7 @@ Use this section to track completion status. Update after each session.
 | 4.5 SegWit Scripts | Complete | Dec 2025 — BIP-143 sighash, P2WPKH, P2WSH verification |
 | 4.6 Taproot Scripts | Complete | Dec 2025 — BIP-341 sighash, key/script path, OP_CHECKSIGADD |
 | 4.7 P2SH Evaluation | Complete | Dec 2025 — P2SH verification, push-only check, P2SH-SegWit |
-| 4.8 Timelock Opcodes | Not Started | |
+| 4.8 Timelock Opcodes | Complete | Dec 2025 — OP_CLTV, OP_CSV, 23/23 tests pass |
 | 4.9 Script Test Vectors | Not Started | |
 | 4.10 Transaction Validation | Not Started | |
 
