@@ -1212,7 +1212,7 @@ Use this section to track completion status. Update after each session.
 ### Phase 4: Consensus — Transaction Validation
 | Session | Status | Notes |
 |---------|--------|-------|
-| 4.1 Script Structures | Not Started | |
+| 4.1 Script Structures | Complete | Dec 2025 — 56/56 tests pass |
 | 4.2 Stack Machine | Not Started | |
 | 4.3 Arithmetic/Logic Opcodes | Not Started | |
 | 4.4 Crypto Opcodes | Not Started | |
