@@ -1220,7 +1220,7 @@ Use this section to track completion status. Update after each session.
 | 4.6 Taproot Scripts | Complete | Dec 2025 — BIP-341 sighash, key/script path, OP_CHECKSIGADD |
 | 4.7 P2SH Evaluation | Complete | Dec 2025 — P2SH verification, push-only check, P2SH-SegWit |
 | 4.8 Timelock Opcodes | Complete | Dec 2025 — OP_CLTV, OP_CSV, 23/23 tests pass |
-| 4.9 Script Test Vectors | Not Started | |
+| 4.9 Script Test Vectors | Complete | Dec 2025 — Bitcoin Core vectors, 909/982 pass (92.6%), SHA1 impl |
 | 4.10 Transaction Validation | Not Started | |
 
 ### Phase 5: Consensus — Block Validation
