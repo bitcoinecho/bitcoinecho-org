@@ -139,8 +139,8 @@ Bitcoin Echo was created to preserve the Bitcoin protocol as it existed at that 
 If you want to understand Bitcoin in more detail:
 
 1. **[The Bitcoin Whitepaper](/bitcoin.pdf):** Satoshi Nakamoto's original paper describing Bitcoin (2008)
-2. **Bitcoin Core:** The original and most widely used Bitcoin implementation (actively developed)
-3. **Bitcoin Improvement Proposals (BIPs):** Technical documents describing changes to Bitcoin
+2. **[Bitcoin Core](https://bitcoincore.org/):** The original and most widely used Bitcoin implementation (actively developed)
+3. **[Bitcoin Improvement Proposals (BIPs)](https://github.com/bitcoin/bips):** Technical documents describing changes to Bitcoin
 4. **[Bitcoin Echo Whitepaper](/docs/whitepaper):** This project's technical specification document
 
 ---
