@@ -31,7 +31,7 @@ if (isset($docs[$uri])) {
 
     $markdown = file_get_contents($mdPath);
     $parsedown = new Parsedown();
-    $parsedown->setSafeMode(true);
+    // Safe mode disabled - we trust our own markdown files
     $content = $parsedown->text($markdown);
     $title = $doc['title'];
 
