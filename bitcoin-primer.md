@@ -8,7 +8,7 @@
 
 ## What Is Bitcoin?
 
-Bitcoin is a digital payment system and currency that was created in 2008 by a person or group using the pseudonym Satoshi Nakamoto. It began operating in January 2009.
+Bitcoin is a digital payment system and currency that was created in 2008 by a person or group using the pseudonym Satoshi Nakamoto, who described the system in [a whitepaper](/bitcoin.pdf) titled "Bitcoin: A Peer-to-Peer Electronic Cash System." It began operating in January 2009.
 
 ### Core Concepts
 
@@ -138,10 +138,10 @@ Bitcoin Echo was created to preserve the Bitcoin protocol as it existed at that 
 
 If you want to understand Bitcoin in more detail:
 
-1. **The Bitcoin Whitepaper:** Satoshi Nakamoto's original paper describing Bitcoin (2008)
+1. **[The Bitcoin Whitepaper](/bitcoin.pdf):** Satoshi Nakamoto's original paper describing Bitcoin (2008)
 2. **Bitcoin Core:** The original and most widely used Bitcoin implementation (actively developed)
 3. **Bitcoin Improvement Proposals (BIPs):** Technical documents describing changes to Bitcoin
-4. **Bitcoin Echo Whitepaper:** This repository's technical specification document
+4. **[Bitcoin Echo Whitepaper](/docs/whitepaper):** This project's technical specification document
 
 ---
 
