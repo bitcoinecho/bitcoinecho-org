@@ -1229,7 +1229,7 @@ Use this section to track completion status. Update after each session.
 | 5.1 Header Validation | Complete | Dec 2025 — PoW check, MTP timestamp, version bits, 29/29 tests pass |
 | 5.2 Difficulty Adjustment | Complete | Dec 2025 — Retargeting every 2016 blocks, factor-of-4 clamping, powlimit cap, 42/42 tests pass |
 | 5.3 Coinbase Validation | Complete | Dec 2025 — Subsidy halving, BIP-34 height encoding, witness commitment, maturity check, 30/30 tests pass |
-| 5.4 Full Block Validation | Not Started | |
+| 5.4 Full Block Validation | Complete | Dec 2025 — block_validate() with full validation pipeline, merkle root verification, duplicate txid detection, size/weight limits, 57/57 tests pass |
 
 ### Phase 6: Consensus — Chain Selection
 | Session | Status | Notes |
