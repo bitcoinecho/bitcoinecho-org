@@ -355,26 +355,21 @@
 
         /* Copy feedback notification */
         .header-copy-feedback {
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%) translateX(calc(100% + 1rem));
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.375rem;
+            margin-left: 0.75rem;
             font-family: var(--font-mono);
             font-size: 0.75rem;
             color: var(--color-text-muted);
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            white-space: nowrap;
-            z-index: 10;
+            transition: opacity 0.3s ease;
+            vertical-align: middle;
         }
 
         .header-copy-feedback.show {
             opacity: 1;
-            transform: translateY(-50%) translateX(calc(100% + 0.5rem));
         }
 
         .header-copy-feedback::before {
@@ -395,11 +390,7 @@
 
             .header-copy-feedback {
                 font-size: 0.6875rem;
-                transform: translateY(-50%) translateX(calc(100% + 0.75rem));
-            }
-
-            .header-copy-feedback.show {
-                transform: translateY(-50%) translateX(calc(100% + 0.25rem));
+                margin-left: 0.5rem;
             }
         }
 
@@ -678,7 +669,7 @@
             // Create feedback element
             const feedback = document.createElement('span');
             feedback.className = 'header-copy-feedback';
-            feedback.textContent = 'Copied to clipboard!';
+            feedback.textContent = 'Copied';
             header.appendChild(feedback);
 
             header.addEventListener('click', function(e) {
