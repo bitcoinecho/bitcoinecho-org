@@ -373,7 +373,7 @@
         }
 
         .header-copy-feedback::before {
-            content: '📋';
+            content: '✓';
             font-size: 0.875rem;
         }
 
@@ -669,7 +669,7 @@
             // Create feedback element
             const feedback = document.createElement('span');
             feedback.className = 'header-copy-feedback';
-            feedback.textContent = 'Copied';
+            feedback.textContent = 'Link Copied';
             header.appendChild(feedback);
 
             header.addEventListener('click', function(e) {
@@ -691,7 +691,7 @@
                                 feedbackEl.classList.add('show');
                                 setTimeout(() => {
                                     feedbackEl.classList.remove('show');
-                                }, 2000);
+                                }, 1200);
                             }
                         }).catch(() => {
                             // Fallback: navigate to the anchor
