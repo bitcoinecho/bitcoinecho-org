@@ -554,9 +554,15 @@ class Parsedown
 
         $text = trim($text, ' ');
 
+        // Generate ID from header text
+        $id = $this->generateHeaderId($text);
+
         $Block = array(
             'element' => array(
                 'name' => 'h' . $level,
+                'attributes' => array(
+                    'id' => $id,
+                ),
                 'handler' => array(
                     'function' => 'lineElements',
                     'argument' => $text,
@@ -566,6 +572,51 @@ class Parsedown
         );
 
         return $Block;
+    }
+
+    protected function generateHeaderId($text)
+    {
+        // Convert to lowercase
+        $id = strtolower($text);
+
+        // Remove markdown formatting (bold, italic, code, links, etc.)
+        $id = preg_replace('/\*\*([^*]+)\*\*/', '$1', $id); // bold
+        $id = preg_replace('/\*([^*]+)\*/', '$1', $id); // italic
+        $id = preg_replace('/`([^`]+)`/', '$1', $id); // code
+        $id = preg_replace('/\[([^\]]+)\]\([^\)]+\)/', '$1', $id); // links
+        $id = preg_replace('/\[([^\]]+)\]/', '$1', $id); // link text only
+        $id = preg_replace('/\([^\)]+\)/', '', $id); // remove remaining parentheses
+
+        // Replace spaces and underscores with hyphens
+        $id = preg_replace('/[\s_]+/', '-', $id);
+
+        // Remove all non-alphanumeric characters except hyphens
+        $id = preg_replace('/[^a-z0-9\-]/', '', $id);
+
+        // Remove leading/trailing hyphens
+        $id = trim($id, '-');
+
+        // Collapse multiple consecutive hyphens
+        $id = preg_replace('/-+/', '-', $id);
+
+        // Handle empty IDs
+        if (empty($id))
+        {
+            $id = 'header';
+        }
+
+        // Handle duplicate IDs by appending a number
+        $originalId = $id;
+        $counter = 1;
+        while (isset($this->headerIds[$id]))
+        {
+            $id = $originalId . '-' . $counter;
+            $counter++;
+        }
+
+        $this->headerIds[$id] = true;
+
+        return $id;
     }
 
     #
@@ -818,6 +869,22 @@ class Parsedown
         if ($Line['indent'] < 4 and chop(chop($Line['text'], ' '), $Line['text'][0]) === '')
         {
             $Block['element']['name'] = $Line['text'][0] === '=' ? 'h1' : 'h2';
+
+            // Generate ID from header text
+            // Extract text from the handler argument
+            $text = isset($Block['element']['handler']['argument'])
+                ? $Block['element']['handler']['argument']
+                : '';
+            // If it's an array (multiple lines), join them
+            if (is_array($text)) {
+                $text = implode(' ', $text);
+            }
+            $id = $this->generateHeaderId($text);
+
+            if (!isset($Block['element']['attributes'])) {
+                $Block['element']['attributes'] = array();
+            }
+            $Block['element']['attributes']['id'] = $id;
 
             return $Block;
         }
@@ -1956,6 +2023,8 @@ class Parsedown
     #
 
     protected $DefinitionData;
+
+    protected $headerIds = array();
 
     #
     # Read-Only

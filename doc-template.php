@@ -277,6 +277,16 @@
             font-size: 1.0625rem;
         }
 
+        .doc-content h1,
+        .doc-content h2,
+        .doc-content h3,
+        .doc-content h4,
+        .doc-content h5,
+        .doc-content h6 {
+            position: relative;
+            scroll-margin-top: 6rem;
+        }
+
         .doc-content h1 {
             font-size: 2rem;
             font-weight: 400;
@@ -303,6 +313,56 @@
             font-size: 1rem;
             font-weight: 700;
             margin: 1.5rem 0 0.5rem;
+        }
+
+        /* Header link icon on hover */
+        .doc-content h1::before,
+        .doc-content h2::before,
+        .doc-content h3::before,
+        .doc-content h4::before,
+        .doc-content h5::before,
+        .doc-content h6::before {
+            content: '🔗';
+            position: absolute;
+            left: -1.5rem;
+            top: 0;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            font-size: 0.875em;
+            line-height: inherit;
+            text-decoration: none;
+            user-select: none;
+        }
+
+        .doc-content h1:hover::before,
+        .doc-content h2:hover::before,
+        .doc-content h3:hover::before,
+        .doc-content h4:hover::before,
+        .doc-content h5:hover::before,
+        .doc-content h6:hover::before {
+            opacity: 0.5;
+        }
+
+        .doc-content h1[id]:hover,
+        .doc-content h2[id]:hover,
+        .doc-content h3[id]:hover,
+        .doc-content h4[id]:hover,
+        .doc-content h5[id]:hover,
+        .doc-content h6[id]:hover {
+            padding-left: 0.5rem;
+            margin-left: -0.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .doc-content h1::before,
+            .doc-content h2::before,
+            .doc-content h3::before,
+            .doc-content h4::before,
+            .doc-content h5::before,
+            .doc-content h6::before {
+                left: -1.25rem;
+                font-size: 0.75em;
+            }
         }
 
         .doc-content p {
@@ -571,6 +631,41 @@
 
         // Evergreen year
         document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Header link functionality
+        document.querySelectorAll('.doc-content h1[id], .doc-content h2[id], .doc-content h3[id], .doc-content h4[id], .doc-content h5[id], .doc-content h6[id]').forEach(header => {
+            header.style.cursor = 'pointer';
+
+            header.addEventListener('click', function(e) {
+                // Don't trigger if clicking on a link inside the header
+                if (e.target.tagName === 'A' || e.target.closest('a')) {
+                    return;
+                }
+
+                const id = this.getAttribute('id');
+                if (id) {
+                    const url = window.location.origin + window.location.pathname + '#' + id;
+
+                    // Copy to clipboard
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(url).then(() => {
+                            // Visual feedback
+                            const originalOpacity = this.style.opacity;
+                            this.style.opacity = '0.7';
+                            setTimeout(() => {
+                                this.style.opacity = originalOpacity || '';
+                            }, 200);
+                        }).catch(() => {
+                            // Fallback: navigate to the anchor
+                            window.location.hash = id;
+                        });
+                    } else {
+                        // Fallback for browsers without clipboard API
+                        window.location.hash = id;
+                    }
+                }
+            });
+        });
     </script>
 </body>
 
