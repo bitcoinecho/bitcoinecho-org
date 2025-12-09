@@ -353,6 +353,35 @@
             margin-left: -0.5rem;
         }
 
+        /* Copy feedback notification */
+        .header-copy-feedback {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%) translateX(calc(100% + 1rem));
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .header-copy-feedback.show {
+            opacity: 1;
+            transform: translateY(-50%) translateX(calc(100% + 0.5rem));
+        }
+
+        .header-copy-feedback::before {
+            content: '📋';
+            font-size: 0.875rem;
+        }
+
         @media (max-width: 600px) {
             .doc-content h1::before,
             .doc-content h2::before,
@@ -362,6 +391,15 @@
             .doc-content h6::before {
                 left: -1.25rem;
                 font-size: 0.75em;
+            }
+
+            .header-copy-feedback {
+                font-size: 0.6875rem;
+                transform: translateY(-50%) translateX(calc(100% + 0.75rem));
+            }
+
+            .header-copy-feedback.show {
+                transform: translateY(-50%) translateX(calc(100% + 0.25rem));
             }
         }
 
@@ -635,6 +673,13 @@
         // Header link functionality
         document.querySelectorAll('.doc-content h1[id], .doc-content h2[id], .doc-content h3[id], .doc-content h4[id], .doc-content h5[id], .doc-content h6[id]').forEach(header => {
             header.style.cursor = 'pointer';
+            header.style.position = 'relative';
+
+            // Create feedback element
+            const feedback = document.createElement('span');
+            feedback.className = 'header-copy-feedback';
+            feedback.textContent = 'Copied to clipboard!';
+            header.appendChild(feedback);
 
             header.addEventListener('click', function(e) {
                 // Don't trigger if clicking on a link inside the header
@@ -649,12 +694,14 @@
                     // Copy to clipboard
                     if (navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(url).then(() => {
-                            // Visual feedback
-                            const originalOpacity = this.style.opacity;
-                            this.style.opacity = '0.7';
-                            setTimeout(() => {
-                                this.style.opacity = originalOpacity || '';
-                            }, 200);
+                            // Show feedback
+                            const feedbackEl = this.querySelector('.header-copy-feedback');
+                            if (feedbackEl) {
+                                feedbackEl.classList.add('show');
+                                setTimeout(() => {
+                                    feedbackEl.classList.remove('show');
+                                }, 2000);
+                            }
                         }).catch(() => {
                             // Fallback: navigate to the anchor
                             window.location.hash = id;
