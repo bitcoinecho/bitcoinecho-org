@@ -19,17 +19,27 @@
     <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="<?= htmlspecialchars($title) ?> — Bitcoin Echo">
-    <meta property="og:description" content="Bitcoin Echo: The Last Implementation">
-    <meta property="og:type" content="article">
-    <meta property="og:url" content="https://bitcoinecho.org/docs/<?= htmlspecialchars(strtolower($title)) ?>">
-    <meta property="og:image" content="https://bitcoinecho.org/bitcoin-echo-symbol.jpg">
+    <meta property="og:title" content="Bitcoin Echo — The Last Implementation">
+    <meta property="og:description"
+        content="A complete Bitcoin protocol implementation in pure C, designed to freeze forever upon completion. Zero dependencies. Built for permanence, not continued development. bitcoinecho.org">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://bitcoinecho.org">
+    <meta property="og:site_name" content="Bitcoin Echo">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:image" content="https://bitcoinecho.org/bitcoin-echo-og-image.png">
+    <meta property="og:image:width" content="960">
+    <meta property="og:image:height" content="960">
+    <meta property="og:image:alt" content="Bitcoin Echo symbol — a stylized B within a circuit-like design">
+    <meta property="og:image:type" content="image/jpeg">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<?= htmlspecialchars($title) ?> — Bitcoin Echo">
-    <meta name="twitter:description" content="Bitcoin Echo: The Last Implementation">
-    <meta name="twitter:image" content="https://bitcoinecho.org/bitcoin-echo-symbol.jpg">
+    <meta name="twitter:title" content="Bitcoin Echo — The Last Implementation">
+    <meta name="twitter:description"
+        content="A complete Bitcoin protocol implementation in pure C, designed to freeze forever upon completion. Zero dependencies. Built for permanence, not continued development.">
+    <meta name="twitter:image" content="https://bitcoinecho.org/bitcoin-echo-og-image.png">
+    <meta name="twitter:image:alt" content="Bitcoin Echo symbol — a stylized B within a circuit-like design">
+    <meta name="twitter:site" content="@bitcoinechoorg">
 
     <!-- Early theme detection to prevent flash -->
     <script>
