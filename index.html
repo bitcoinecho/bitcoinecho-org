@@ -87,6 +87,7 @@
             --color-symbol-invert: invert(1);
             --color-nav-gradient: linear-gradient(to bottom, #0a0a0a 0%, transparent 100%);
             --color-nav-solid: rgba(10, 10, 10, 0.95);
+            --color-echo-ring: rgba(255, 255, 255, 0.18);
         }
 
         /* Light theme */
@@ -103,6 +104,7 @@
             --color-symbol-invert: invert(0);
             --color-nav-gradient: linear-gradient(to bottom, #f8f6f3 0%, transparent 100%);
             --color-nav-solid: rgba(248, 246, 243, 0.95);
+            --color-echo-ring: rgba(0, 0, 0, 0.12);
         }
 
         *,
@@ -375,7 +377,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            border: 2px solid var(--color-echo-ring);
             border-radius: 50%;
             animation: echoExpand 4s var(--ease-out) infinite;
         }
