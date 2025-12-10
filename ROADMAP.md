@@ -2,7 +2,7 @@
 
 **A Living Document for Development Sessions**
 
-*Last Updated: December 7, 2025*
+*Last Updated: December 10, 2025*
 
 ---
 
@@ -1235,8 +1235,8 @@ Use this section to track completion status. Update after each session.
 | Session | Status | Notes |
 |---------|--------|-------|
 | 6.1 UTXO Structures | Complete | Dec 2025 — utxo.h/c, hash table implementation, 22/22 tests pass |
-| 6.2 Chain State | Not Started | |
-| 6.3 Chain Selection | Not Started | |
+| 6.2 Chain State | Complete | Dec 2025 — chainstate.h/c, work256 arithmetic, block apply/revert, 28/28 tests pass |
+| 6.3 Chain Selection | Complete | Dec 2025 — block index map, chain comparison, common ancestor, reorg planning, 48/48 tests pass |
 | 6.4 Consensus Integration | Not Started | |
 
 ### Phase 7: Storage
