@@ -1234,7 +1234,7 @@ Use this section to track completion status. Update after each session.
 ### Phase 6: Consensus — Chain Selection
 | Session | Status | Notes |
 |---------|--------|-------|
-| 6.1 UTXO Structures | Not Started | |
+| 6.1 UTXO Structures | Complete | Dec 2025 — utxo.h/c, hash table implementation, 22/22 tests pass |
 | 6.2 Chain State | Not Started | |
 | 6.3 Chain Selection | Not Started | |
 | 6.4 Consensus Integration | Not Started | |
