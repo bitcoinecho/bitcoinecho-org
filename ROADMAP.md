@@ -1237,7 +1237,7 @@ Use this section to track completion status. Update after each session.
 | 6.1 UTXO Structures | Complete | Dec 2025 — utxo.h/c, hash table implementation, 22/22 tests pass |
 | 6.2 Chain State | Complete | Dec 2025 — chainstate.h/c, work256 arithmetic, block apply/revert, 28/28 tests pass |
 | 6.3 Chain Selection | Complete | Dec 2025 — block index map, chain comparison, common ancestor, reorg planning, 48/48 tests pass |
-| 6.4 Consensus Integration | Not Started | |
+| 6.4 Consensus Integration | Complete | Dec 2025 — consensus.h/c, unified API, pure validation functions, soft fork activation flags, 37/37 tests pass |
 
 ### Phase 7: Storage
 | Session | Status | Notes |
