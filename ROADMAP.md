@@ -1252,7 +1252,7 @@ Use this section to track completion status. Update after each session.
 |---------|--------|-------|
 | 8.1 Message Structures | Complete | Dec 2025 — protocol.h, messages.c, 25/25 tests pass |
 | 8.2 Serialization | Complete | Dec 2025 — protocol_serialize.h/c, 17/17 tests pass, full wire format encoding/decoding |
-| 8.3 Peer Management | Not Started | |
+| 8.3 Peer Management | Complete | Dec 2025 — peer.h/c, connection lifecycle, version/verack handshake, message queuing, 20/20 tests pass |
 | 8.4 Peer Discovery | Not Started | |
 | 8.5 Inventory/Relay | Not Started | |
 | 8.6 Headers-First Sync | Not Started | |
