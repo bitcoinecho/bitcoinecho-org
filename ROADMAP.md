@@ -1250,7 +1250,7 @@ Use this section to track completion status. Update after each session.
 ### Phase 8: Protocol Layer
 | Session | Status | Notes |
 |---------|--------|-------|
-| 8.1 Message Structures | Not Started | |
+| 8.1 Message Structures | Complete | Dec 2025 — protocol.h, messages.c, 25/25 tests pass |
 | 8.2 Serialization | Not Started | |
 | 8.3 Peer Management | Not Started | |
 | 8.4 Peer Discovery | Not Started | |
