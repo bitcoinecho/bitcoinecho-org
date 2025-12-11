@@ -1244,7 +1244,7 @@ Use this section to track completion status. Update after each session.
 |---------|--------|-------|
 | 7.1 Block Files | Complete | Dec 2025 — blocks_storage.h/c, blk*.dat format, append-only files, 9/9 tests pass |
 | 7.2 SQLite Integration | Complete | Dec 2025 — db.h/c, SQLite amalgamation wrapper, WAL mode, transactions, prepared statements, 21/21 tests pass |
-| 7.3 UTXO Database | Not Started | |
+| 7.3 UTXO Database | Complete | Dec 2025 — utxo_db.h/c, UTXO table schema per §6.2, atomic block apply, batch operations, 16/16 tests pass |
 | 7.4 Block Index | Not Started | |
 
 ### Phase 8: Protocol Layer
