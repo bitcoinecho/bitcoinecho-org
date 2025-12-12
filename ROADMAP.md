@@ -1255,7 +1255,7 @@ Use this section to track completion status. Update after each session.
 | 8.3 Peer Management | Complete | Dec 2025 — peer.h/c, connection lifecycle, version/verack handshake, message queuing, 20/20 tests pass |
 | 8.4 Peer Discovery | Complete | Dec 2025 — discovery.h/c, DNS seeds, hardcoded seeds, addr/getaddr handling, outbound selection, 20/20 tests pass |
 | 8.5 Inventory/Relay | Complete | Dec 2025 — relay.h/c, inv/getdata protocol, block/tx relay, DoS prevention (rate limiting, banning), 15/15 tests pass |
-| 8.6 Headers-First Sync | Not Started | |
+| 8.6 Headers-First Sync | Complete | Dec 2025 — sync.h/c, headers-first IBD, block locator construction, header chain validation, block download queue, parallel downloads from multiple peers, sync progress tracking, 32/32 tests pass |
 | 8.7 Mempool | Not Started | |
 
 ### Phase 9: Application Layer
