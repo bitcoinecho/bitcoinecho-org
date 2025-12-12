@@ -1254,7 +1254,7 @@ Use this section to track completion status. Update after each session.
 | 8.2 Serialization | Complete | Dec 2025 — protocol_serialize.h/c, 17/17 tests pass, full wire format encoding/decoding |
 | 8.3 Peer Management | Complete | Dec 2025 — peer.h/c, connection lifecycle, version/verack handshake, message queuing, 20/20 tests pass |
 | 8.4 Peer Discovery | Complete | Dec 2025 — discovery.h/c, DNS seeds, hardcoded seeds, addr/getaddr handling, outbound selection, 20/20 tests pass |
-| 8.5 Inventory/Relay | Not Started | |
+| 8.5 Inventory/Relay | Complete | Dec 2025 — relay.h/c, inv/getdata protocol, block/tx relay, DoS prevention (rate limiting, banning), 15/15 tests pass |
 | 8.6 Headers-First Sync | Not Started | |
 | 8.7 Mempool | Not Started | |
 
