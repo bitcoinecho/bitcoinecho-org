@@ -1256,7 +1256,7 @@ Use this section to track completion status. Update after each session.
 | 8.4 Peer Discovery | Complete | Dec 2025 — discovery.h/c, DNS seeds, hardcoded seeds, addr/getaddr handling, outbound selection, 20/20 tests pass |
 | 8.5 Inventory/Relay | Complete | Dec 2025 — relay.h/c, inv/getdata protocol, block/tx relay, DoS prevention (rate limiting, banning), 15/15 tests pass |
 | 8.6 Headers-First Sync | Complete | Dec 2025 — sync.h/c, headers-first IBD, block locator construction, header chain validation, block download queue, parallel downloads from multiple peers, sync progress tracking, 32/32 tests pass |
-| 8.7 Mempool | Not Started | |
+| 8.7 Mempool | Complete | Dec 2025 — mempool.h/c, transaction acceptance policy, fee-based prioritization, size limits, eviction, conflict detection, ancestor/descendant tracking, block handling, mining selection, 82/82 tests pass |
 
 ### Phase 9: Application Layer
 | Session | Status | Notes |
