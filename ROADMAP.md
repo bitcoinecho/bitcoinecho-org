@@ -1261,7 +1261,7 @@ Use this section to track completion status. Update after each session.
 ### Phase 9: Application Layer
 | Session | Status | Notes |
 |---------|--------|-------|
-| 9.1 Node Initialization | Not Started | |
+| 9.1 Node Initialization | Complete | Dec 2025 — node.h/c, node lifecycle management (create/start/stop/destroy), data directory setup, database initialization, consensus engine integration, mempool integration, peer discovery integration, component accessors, statistics, signal handling, 36/36 tests pass |
 | 9.2 Event Loop | Not Started | |
 | 9.3 RPC Interface | Not Started | |
 | 9.4 Logging | Not Started | |
