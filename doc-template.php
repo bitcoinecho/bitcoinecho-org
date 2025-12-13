@@ -642,6 +642,7 @@
             <div class="footer-links">
                 <a href="mailto:echo@bitcoinecho.org" class="footer-link">echo@bitcoinecho.org</a>
                 <a href="https://github.com/bitcoinecho" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+                <a href="/funding" class="footer-link">Funding</a>
             </div>
         </div>
     </footer>

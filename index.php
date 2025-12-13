@@ -16,6 +16,7 @@ $docs = [
     'docs/whitepaper' => ['file' => 'bitcoin-echo-whitepaper.md', 'title' => 'Whitepaper'],
     'docs/primer'     => ['file' => 'bitcoin-primer.md',          'title' => 'Bitcoin Primer'],
     'docs/building'   => ['file' => 'building-in-the-future.md',  'title' => 'Building in the Future'],
+    'funding'         => ['file' => 'funding.md',                 'title' => 'Funding Proposal'],
 ];
 
 // Handle document requests
