@@ -23,7 +23,7 @@ The 2025 OP_RETURN controversy demonstrated this fragility: a single policy chan
 - **15,000-25,000 lines** of heavily commented C11
 - **Zero external dependencies** beyond a C compiler
 - **Compile-time policy configuration**: node runners control their own stance
-- **Professional security audit** before release
+- **Professional comprehensive audit** before release
 - **Permanent archive**: blockchain hash, offline copies, time capsule
 
 Upon completion, there is no version 2.0. No roadmap. No maintenance team to lobby. The code becomes a historical artifact that happens to validate blocks.
@@ -72,11 +72,11 @@ While the code freezes upon completion, the educational mission continues: curri
 | Consensus Engine | Complete |
 | Storage Layer | Complete |
 | Protocol Layer | Complete |
-| Application Layer | ~95% Complete (final integration pending) |
+| Application Layer | In Progress |
 | GUI Project | In Progress |
 | Mining Interface | Planned |
 | Testing & Hardening | Planned |
-| Security Audit | Pending Funding |
+| Comprehensive Audit | Pending Funding |
 
 **Recent Milestones:**
 - **Application Layer Nearly Complete**: Full node operation, RPC interface, event loop, logging, observer mode
@@ -88,15 +88,17 @@ While the code freezes upon completion, the educational mission continues: curri
 
 ## Funding Request
 
-### Immediate Need: $500,000
+### Funding Target: $500,000
 
-**Why $500,000?** This target reflects a realistic assessment of remaining work: 11+ development sessions, comprehensive security audit, infrastructure needs, and post-launch activities. The 15% reserve fund provides essential buffer for unexpected challenges, ensuring we can complete the project without compromising quality or scope.
+**Why $500,000?** This target reflects a realistic assessment of remaining work: 11+ development sessions, comprehensive audit, infrastructure needs, and post-launch activities. The 15% reserve fund provides essential buffer for unexpected challenges, ensuring we can complete the project without compromising quality or scope.
+
+**Every Dollar and Satoshi helps.** Contributions of any size advance the mission. Whether you can fund the comprehensive audit or contribute to infrastructure, your support moves Bitcoin Echo closer to completion. We welcome donations from individuals, foundations, and institutions—every contribution is meaningful and appreciated.
 
 A portion of early donations will be used to establish Bitcoin Echo Foundation as a 501(c)(3) educational nonprofit. Donations made during the application period may be retroactively tax-deductible upon IRS approval.
 
 | Allocation | Amount | Purpose |
 |------------|--------|---------|
-| Security Audit | $175,000 | Professional review by Trail of Bits or equivalent, including potential follow-up reviews |
+| Comprehensive Audit | $175,000 | Professional review by Trail of Bits or equivalent, including potential follow-up reviews |
 | Development Completion | $125,000 | Full-time focus through v1.0 release (11+ remaining sessions: full node integration, mining interface, comprehensive consensus testing, fuzz testing, chain sync validation, audit preparation, documentation, release preparation, blockchain embedding, and archival) |
 | Infrastructure | $50,000 | Hosting, multiple archive copies, long-term preservation, blockchain embedding |
 | Foundation Setup | $10,000 | Incorporation, 501(c)(3) application, initial board formation |
