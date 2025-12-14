@@ -2,7 +2,7 @@
 
 **A Living Document for Development Sessions**
 
-*Last Updated: December 10, 2025*
+*Last Updated: December 13, 2025*
 
 ---
 
@@ -50,8 +50,13 @@ bitcoin-echo/             ← Sibling folder (C implementation, to be created)
 - [x] Initial source code written (main.c prints version)
 - [x] Core types and headers defined (Phase 0 complete)
 
+### In Progress
+- [ ] Phase 9: Application Layer (Sessions 9.5, 9.6 remaining)
+
 ### Not Yet Started
-- [ ] Platform abstraction layer
+- [ ] Phase 10: Mining Interface
+- [ ] Phase 11: Testing & Hardening
+- [ ] Phase 12: Completion
 
 ---
 
@@ -1017,6 +1022,87 @@ Each unit is designed to be completable in a single focused chat session. Units 
 
 ---
 
+#### Session 9.5: Observer Mode
+**Objective:** Connect to the live Bitcoin network and observe traffic without validation
+
+**Background:** Full chain synchronization requires building the UTXO set from genesis, which takes significant time. Observer mode provides immediate visibility into network activity by connecting to real peers and displaying traffic without attempting validation. This enables:
+- Immediate proof-of-life for the node
+- GUI development against live data
+- Educational observation of Bitcoin P2P protocol
+- Testing peer connectivity before committing to full sync
+
+**Tasks:**
+- Add `--observe` command-line flag to main.c
+- Implement observer-only node initialization:
+  - Initialize platform layer
+  - Initialize logging
+  - Initialize peer discovery (DNS seeds)
+  - Skip consensus engine, storage, UTXO database initialization
+- Wire up main.c for real operation:
+  - Parse command-line arguments (--datadir, --testnet, --regtest, --observe, --rpcport, --port)
+  - Create node with parsed configuration
+  - Register signal handlers (SIGINT, SIGTERM)
+  - Create and start RPC server
+  - Run event loop (peer processing + RPC processing)
+  - Graceful shutdown sequence
+- Implement passive peer message handling:
+  - Connect to peers via DNS seeds
+  - Complete version/verack handshake
+  - Receive and log inv messages (new blocks, transactions)
+  - Optionally request and receive block/tx data via getdata
+  - Parse received data for display (do not validate)
+  - Do not relay anything to other peers
+- Add observer-specific RPC methods:
+  - `getobserverstats` — message counts by type, peer count, recent activity
+  - `getobservedblocks` — list of recently announced block hashes
+  - `getobservedtxs` — list of recently announced transaction ids
+- Implement activity logging:
+  - Log all received inv announcements
+  - Log peer connections/disconnections
+  - Log received block headers (parsed but not validated)
+- Test observer mode:
+  - Node starts and connects to mainnet peers
+  - RPC responds to getobserverstats
+  - Live traffic visible in logs
+  - Ctrl+C triggers graceful shutdown
+
+**Deliverables:** A node that connects to mainnet and observes live traffic, with RPC for the GUI to display activity
+
+**Note:** This session also completes the "Pinocchio moment"—wiring main.c to actually run. The --observe flag enables immediate demonstration while full sync capability (requiring all consensus/storage) is tested separately in Phase 11.
+
+---
+
+#### Session 9.6: Full Node Integration
+**Objective:** Wire all components for full validating node operation
+
+**Tasks:**
+- Extend main.c to support full node mode (default, without --observe):
+  - Initialize all storage (block files, UTXO DB, block index DB)
+  - Initialize consensus engine with restored chain state
+  - Initialize mempool
+  - Start headers-first sync when peers connect
+- Integrate block processing in event loop:
+  - Validate received blocks via consensus engine
+  - Update chain state and UTXO set
+  - Handle reorganizations
+  - Relay valid blocks to peers
+- Integrate transaction processing:
+  - Validate received transactions
+  - Add to mempool if valid
+  - Relay to peers per policy
+- Add full node RPC methods (if not already working):
+  - Verify all 7 methods work with real chain data
+- Test on regtest:
+  - Node starts with empty chain
+  - Can mine blocks via submitblock
+  - Chain state persists across restart
+
+**Deliverables:** Fully operational validating node (ready for Phase 11 chain sync testing)
+
+**Note:** This session completes Phase 9's original intent. Observer mode (9.5) provides immediate gratification while this session enables the full node capability tested in Phase 11.
+
+---
+
 ### Phase 10: Mining Interface
 
 #### Session 10.1: Block Template Generation
@@ -1265,6 +1351,8 @@ Use this section to track completion status. Update after each session.
 | 9.2 Event Loop | Complete | Dec 2025 — node_process_peers() peer message handling (ping/pong, addr, headers, blocks, tx, inv/getdata), node_process_blocks() for chain updates, node_maintenance() periodic tasks (peer ping, sync tick, outbound connections, cleanup), main event loop structure in main.c with signal handling, 13/13 tests pass |
 | 9.3 RPC Interface | Complete | Dec 2025 — rpc.h/c with full JSON-RPC 1.0 server: minimal recursive-descent JSON parser, JSON response builder, HTTP/1.0 request handling, 7 RPC methods (getblockchaininfo, getblock, getblockhash, getrawtransaction, sendrawtransaction, getblocktemplate, submitblock), hash formatting with reversed byte order for display, hex encoding/decoding utilities, completed read_net_addr for addr message deserialization, 39/39 tests pass |
 | 9.4 Logging | Complete | Dec 2025 — log.h/c, fixed-format machine-parseable logging, timestamp with milliseconds, log levels (ERROR/WARN/INFO/DEBUG), component-based filtering (MAIN/NET/P2P/CONS/SYNC/POOL/RPC/DB/STOR/CRYP), file output support, thread-safe with platform mutex, plat_mutex_alloc/free added to platform API, 28/28 tests pass |
+| 9.5 Observer Mode | Not Started | The "Pinocchio session" — wires main.c, connects to mainnet, observes live traffic |
+| 9.6 Full Node Integration | Not Started | Completes full validating node with all components wired |
 
 ### Phase 10: Mining Interface
 | Session | Status | Notes |

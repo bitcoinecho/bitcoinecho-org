@@ -2,7 +2,7 @@
 
 **A Living Document for GUI Development**
 
-*Last Updated: December 12, 2025*
+*Last Updated: December 13, 2025*
 
 ---
 
@@ -119,17 +119,17 @@ This means GUI work can happen *in parallel* with Phases 10-11 of the node.
 
 ## Implementation Phases
 
-### Phase 0: Project Foundation
+### Phase 0: Project Foundation ✅
 *Establish the development environment*
 
-### Phase 1: RPC Client Layer
-*Build the typed interface to the node*
+### Phase 1: Live Observer (The "Wow Moment") 🎯
+*Connect to a real Bitcoin node and watch live network traffic*
 
-### Phase 2: Mock Mode
-*Enable GUI development without a running node*
+### Phase 2: Full RPC Client & Mock Mode
+*Complete RPC coverage and development tooling*
 
 ### Phase 3: Dashboard View
-*The primary landing screen*
+*Chain status for full node mode*
 
 ### Phase 4: Block Explorer
 *Navigate the chain*
@@ -205,33 +205,140 @@ Each session is designed to be completable in a single focused chat session.
 
 ---
 
-### Phase 1: RPC Client Layer
+### Phase 1: Live Observer (The "Wow Moment")
 
-#### Session 1.1: RPC Client Implementation
-**Objective:** Build typed RPC client
+**Philosophy:** The first real feature should be the most impressive. Before mock data, before block explorers, before anything else—we show live Bitcoin network traffic. This proves the entire stack works and creates immediate engagement.
+
+**Prerequisites:** Node Session 9.5 (Observer Mode) must be complete first.
+
+#### Session 1.1: Minimal RPC Client for Observer
+**Objective:** Build just enough RPC client to support observer mode
 
 **Tasks:**
 - Create `src/lib/rpc/client.ts`:
   - JSON-RPC 1.0 request builder
   - Fetch wrapper with timeout
-  - Error parsing (map RPC error codes)
+  - Basic error handling
   - Configurable endpoint (default localhost:8332)
-- Create `src/lib/rpc/types.ts`:
-  - Request/response types for all 7 RPC methods
-  - Type definitions matching bitcoin-echo RPC spec:
-    ```typescript
-    interface BlockchainInfo {
-      chain: string;
-      blocks: number;
-      headers: number;
-      bestblockhash: string;
-      difficulty: number;
-      mediantime: number;
-      verificationprogress: number;
-      chainwork: string;
-    }
-    ```
+- Create `src/lib/rpc/types.ts` (observer types only initially):
+  ```typescript
+  interface ObserverStats {
+    peers: number;
+    messages_received: number;
+    blocks_announced: number;
+    txs_announced: number;
+    uptime_seconds: number;
+    mode: 'observer' | 'full';
+  }
+
+  interface ObservedBlock {
+    hash: string;
+    time_received: number;
+    from_peer: string;
+  }
+
+  interface ObservedTx {
+    txid: string;
+    time_received: number;
+  }
+  ```
 - Create typed method wrappers:
+  - `getObserverStats(): Promise<ObserverStats>`
+  - `getObservedBlocks(limit?: number): Promise<ObservedBlock[]>`
+  - `getObservedTxs(limit?: number): Promise<ObservedTx[]>`
+- Create `src/lib/stores/connection.ts`:
+  - Simple connection state store
+  - Auto-reconnect on failure
+  - Health check via `getObserverStats`
+
+**Deliverables:** RPC client sufficient for observer mode
+
+---
+
+#### Session 1.2: Live Network Observer View
+**Objective:** Real-time display of Bitcoin network activity
+
+**Tasks:**
+- Create `src/routes/observer/+page.svelte` (make this the default home)
+- Create `ObserverStats` component:
+  - Connected peer count (big number, prominent)
+  - Messages received (by type)
+  - Uptime
+  - Mode indicator ("Observer Mode - Watching the Network")
+- Create `LiveBlockFeed` component:
+  - Real-time list of announced blocks (last 20)
+  - Block hash (truncated, copyable)
+  - Time received (relative: "3s ago")
+  - Auto-scroll with pause on hover
+  - Visual pulse animation on new block
+- Create `LiveTxFeed` component:
+  - Real-time transaction stream
+  - Txid (truncated)
+  - Rate indicator (tx/sec rolling average)
+  - Toggle to pause/resume (can be overwhelming)
+- Create `NetworkPulse` component:
+  - Simple CSS animation showing activity
+  - Pulses/glows on each received message
+  - Visual heartbeat of Bitcoin
+- Implement polling:
+  - `getObserverStats` every 2 seconds
+  - `getObservedBlocks` every 3 seconds
+  - `getObservedTxs` every 2 seconds
+- Update Sidebar:
+  - "Observer" as primary nav item (default home)
+  - Live indicator dot (green when connected, pulsing when receiving)
+- Handle states gracefully:
+  - "Connecting..." (initial)
+  - "Waiting for peers..." (0 peers)
+  - "Observing Bitcoin Network" (1+ peers, receiving data)
+  - "Node not running" (connection failed)
+  - "Node not in observer mode" (connected but wrong mode)
+
+**Deliverables:** The wow moment—live Bitcoin traffic in the GUI
+
+---
+
+#### Session 1.3: Connection Settings & Polish
+**Objective:** Make observer view production-ready
+
+**Tasks:**
+- Create connection settings modal:
+  - RPC endpoint URL input
+  - Test connection button
+  - Save to localStorage
+- Add `ConnectionStatus` component to Header:
+  - Show connected/disconnected state
+  - Click to open settings
+- Add CORS handling documentation/guidance
+- Improve error messages (user-friendly)
+- Add "What am I seeing?" help tooltip/modal explaining observer mode
+- Responsive design verification
+
+**Deliverables:** Polished, user-friendly observer experience
+
+---
+
+### Phase 2: Full RPC Client & Mock Mode
+
+#### Session 2.1: Complete RPC Client
+**Objective:** Extend RPC client for all node methods
+
+**Tasks:**
+- Extend `src/lib/rpc/types.ts` with full type definitions:
+  ```typescript
+  interface BlockchainInfo {
+    chain: string;
+    blocks: number;
+    headers: number;
+    bestblockhash: string;
+    difficulty: number;
+    mediantime: number;
+    verificationprogress: number;
+    chainwork: string;
+  }
+  // ... Block, Transaction, etc.
+  ```
+- Add typed method wrappers:
   - `getBlockchainInfo(): Promise<BlockchainInfo>`
   - `getBlock(hash: string, verbosity?: number): Promise<Block>`
   - `getBlockHash(height: number): Promise<string>`
@@ -240,59 +347,35 @@ Each session is designed to be completable in a single focused chat session.
   - `getBlockTemplate(): Promise<BlockTemplate>`
   - `submitBlock(hex: string): Promise<string | null>`
 
-**Deliverables:** Typed RPC client
+**Deliverables:** Complete typed RPC client
 
 ---
 
-#### Session 1.2: Connection Management
-**Objective:** Handle node connectivity gracefully
-
-**Tasks:**
-- Create `src/lib/stores/connection.ts`:
-  - Svelte writable store for connection state
-  - States: disconnected, connecting, connected, error
-  - Auto-reconnect with exponential backoff
-  - Health check via periodic `getblockchaininfo`
-- Create `ConnectionStatus.svelte` component (header indicator)
-- Create connection settings modal:
-  - RPC endpoint URL
-  - Save to localStorage
-- Handle CORS (document that node needs Access-Control headers or use proxy)
-
-**Deliverables:** Robust connection handling
-
----
-
-### Phase 2: Mock Mode
-
-#### Session 2.1: Mock Data System
+#### Session 2.2: Mock Data System
 **Objective:** Enable GUI development without a running node
 
 **Tasks:**
 - Create `src/lib/rpc/mock.ts`:
   - Mock implementation of all RPC methods
   - Simulated blockchain state (genesis + 100 blocks)
+  - Simulated observer mode data (fake live traffic)
   - Realistic mock transactions
-  - Configurable sync progress simulation
-- Create `src/lib/stores/mock.ts`:
-  - Svelte store to toggle between real RPC and mock
-  - Persist preference in localStorage
+- Create mock mode toggle:
+  - Environment variable: `VITE_MOCK_MODE=true`
+  - Runtime toggle in settings (dev only)
 - Add visual indicator when in mock mode
-- Environment variable to default to mock: `VITE_MOCK_MODE=true`
 
 **Deliverables:** Full mock mode for development
-
-**Note:** This is critical for GUI development velocity. Without mock mode, you'd need a running node for every UI iteration.
 
 ---
 
 ### Phase 3: Dashboard View
 
 #### Session 3.1: Chain Status Panel
-**Objective:** Display current blockchain state
+**Objective:** Display current blockchain state (for full node mode)
 
 **Tasks:**
-- Create `src/routes/+page.svelte` (Dashboard is the home route)
+- Create/update `src/routes/+page.svelte` (Dashboard for full node mode)
 - Create `ChainStatusCard` component:
   - Current height
   - Best block hash (linked to explorer)
@@ -301,6 +384,7 @@ Each session is designed to be completable in a single focused chat session.
   - Median time past
 - Auto-refresh every 10 seconds
 - Loading skeleton while fetching
+- Update Sidebar: Show Dashboard when in full node mode, Observer when in observer mode
 
 **Deliverables:** Basic chain status display
 
@@ -327,14 +411,11 @@ Each session is designed to be completable in a single focused chat session.
 #### Session 3.3: Peer Information
 **Objective:** Display network connectivity
 
-**Note:** This requires additional RPC methods not yet in bitcoin-echo. Options:
-1. Add `getpeerinfo` to bitcoin-echo RPC (Phase 10 or later)
-2. Display placeholder "Peer info coming soon"
-3. Skip peer display until node supports it
+**Note:** Requires `getpeerinfo` RPC (not yet in bitcoin-echo).
 
-**Tasks (assuming option 2 for now):**
+**Tasks:**
 - Create `PeersCard` component:
-  - "Coming soon" state with placeholder
+  - "Coming soon" placeholder initially
   - Design ready for when RPC is available
 - Document needed RPC addition in bitcoin-echo backlog
 
@@ -481,29 +562,31 @@ Each session is designed to be completable in a single focused chat session.
 
 ## Progress Tracking
 
-### Phase 0: Foundation
+### Phase 0: Foundation ✅
 | Session | Status | Notes |
 |---------|--------|-------|
 | 0.1 Repository Setup | Complete | Dec 2025 — SvelteKit + TS + Tailwind + ESLint/Prettier, Node 20 LTS |
 | 0.2 Design System | Complete | Dec 2025 — Brand colors, Button/Card/Badge/Spinner/Hash components, Header/Sidebar shell |
 
-### Phase 1: RPC Client
+### Phase 1: Live Observer 🎯
 | Session | Status | Notes |
 |---------|--------|-------|
-| 1.1 RPC Client | Not Started | |
-| 1.2 Connection Management | Not Started | |
+| 1.1 Minimal RPC Client | Not Started | Blocked on Node Session 9.5 |
+| 1.2 Live Network Observer View | Not Started | THE WOW MOMENT — live Bitcoin traffic |
+| 1.3 Connection Settings & Polish | Not Started | |
 
-### Phase 2: Mock Mode
+### Phase 2: Full RPC & Mock Mode
 | Session | Status | Notes |
 |---------|--------|-------|
-| 2.1 Mock Data System | Not Started | |
+| 2.1 Complete RPC Client | Not Started | |
+| 2.2 Mock Data System | Not Started | |
 
 ### Phase 3: Dashboard
 | Session | Status | Notes |
 |---------|--------|-------|
 | 3.1 Chain Status | Not Started | |
 | 3.2 Sync Progress | Not Started | |
-| 3.3 Peer Info | Not Started | Requires RPC addition |
+| 3.3 Peer Info | Not Started | Requires `getpeerinfo` RPC |
 
 ### Phase 4: Block Explorer
 | Session | Status | Notes |
@@ -538,25 +621,30 @@ Each session is designed to be completable in a single focused chat session.
 ```
 bitcoin-echo                  bitcoinecho-gui
 ─────────────                 ───────────────
-Phase 10: Mining Interface    Phase 0-2: Foundation + Mock Mode
-                              (GUI doesn't need real node yet)
+                              Phase 0: Foundation ✅ DONE
 
-Phase 11: Testing & Hardening Phase 3-5: Views
-                              (Test against regtest as available)
+Session 9.5: Observer Mode ─► Phase 1: Live Observer
+                              🎉 THE WOW MOMENT 🎉
 
-Phase 12: Completion          Phase 6-7: Polish + Release
-                              (Full integration testing)
+Session 9.6: Full Integration Phase 2: Full RPC & Mock Mode
+Phase 10: Mining Interface    Phase 3-5: Dashboard, Explorer, Tx Views
+
+Phase 11: Testing & Hardening Phase 6-7: Console, Polish & Release
+Phase 12: Completion          (Full integration testing)
 ```
+
+**Critical Path:** Node Session 9.5 → GUI Phase 1 (Observer)
 
 ### Dependencies & Blockers
 
 | GUI Feature | Node Requirement | Status |
 |-------------|------------------|--------|
-| Dashboard chain status | `getblockchaininfo` | Ready |
-| Block explorer | `getblock`, `getblockhash` | Ready |
-| Transaction view | `getrawtransaction` | Ready |
-| Transaction broadcast | `sendrawtransaction` | Ready |
-| Peer information | `getpeerinfo` (not implemented) | **Blocked** |
+| **Live Network Observer** | Session 9.5 (`--observe` mode, observer RPCs) | **NEXT UP** 🎯 |
+| Dashboard chain status | `getblockchaininfo` | Ready (after 9.6) |
+| Block explorer | `getblock`, `getblockhash` | Ready (after 9.6) |
+| Transaction view | `getrawtransaction` | Ready (after 9.6) |
+| Transaction broadcast | `sendrawtransaction` | Ready (after 9.6) |
+| Peer information | `getpeerinfo` (not implemented) | Blocked |
 | Mining view | `getblocktemplate` (stub) | Partial |
 | Real chain sync | Full IBD capability | Phase 11 |
 
