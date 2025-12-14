@@ -115,6 +115,14 @@
             padding: 0;
         }
 
+        /* Ensure text selection is enabled by default */
+        * {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
         html {
             scroll-behavior: smooth;
             font-size: 16px;
@@ -131,6 +139,10 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             transition: background-color 0.3s ease, color 0.3s ease;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
         }
 
         /* Background pattern */
@@ -205,6 +217,10 @@
             position: relative;
             z-index: 1;
             overflow-x: hidden;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
         }
 
         /* Navigation */
@@ -1404,7 +1420,8 @@
                 </div>
                 <div class="donation-address-wrapper">
                     <div class="donation-address-label">Bitcoin Address</div>
-                    <div class="donation-address-text" id="btc-address" data-address="bc1q6lxs3kmjwya43p5l278fydcagxaawaateq7gse">
+                    <div class="donation-address-text" id="btc-address"
+                        data-address="bc1q6lxs3kmjwya43p5l278fydcagxaawaateq7gse">
                         bc1q6lxs3kmjwya43p5l278fydcagxaawaateq7gse
                     </div>
                     <div class="donation-copy-hint">Click to copy</div>
@@ -1517,7 +1534,7 @@
         // BTC Address Copy Functionality
         const btcAddress = document.getElementById('btc-address');
         if (btcAddress) {
-            btcAddress.addEventListener('click', async function() {
+            btcAddress.addEventListener('click', async function () {
                 const address = this.getAttribute('data-address');
 
                 try {

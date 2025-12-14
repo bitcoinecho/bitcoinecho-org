@@ -104,6 +104,14 @@
             padding: 0;
         }
 
+        /* Ensure text selection is enabled by default */
+        * {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
         html {
             scroll-behavior: smooth;
             font-size: 16px;
@@ -117,6 +125,10 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             transition: background-color 0.3s ease, color 0.3s ease;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
         }
 
         /* Background pattern */
@@ -239,6 +251,10 @@
             max-width: 750px;
             margin: 0 auto;
             padding: 8rem 2rem 4rem;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
         }
 
         /* Document Header */
