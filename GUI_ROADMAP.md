@@ -2,7 +2,7 @@
 
 **A Living Document for GUI Development**
 
-*Last Updated: December 13, 2025*
+*Last Updated: December 13, 2025 (Session 1.1 complete)*
 
 ---
 
@@ -571,8 +571,8 @@ Each session is designed to be completable in a single focused chat session.
 ### Phase 1: Live Observer 🎯
 | Session | Status | Notes |
 |---------|--------|-------|
-| 1.1 Minimal RPC Client | Not Started | Blocked on Node Session 9.5 |
-| 1.2 Live Network Observer View | Not Started | THE WOW MOMENT — live Bitcoin traffic |
+| 1.1 Minimal RPC Client | ✅ Complete | Dec 2025 — RPC client, connection store, observer types (commit 4bbd74b) |
+| 1.2 Live Network Observer View | In Progress | Observer page implemented, testing with live node |
 | 1.3 Connection Settings & Polish | Not Started | |
 
 ### Phase 2: Full RPC & Mock Mode
@@ -639,7 +639,7 @@ Phase 12: Completion          (Full integration testing)
 
 | GUI Feature | Node Requirement | Status |
 |-------------|------------------|--------|
-| **Live Network Observer** | Session 9.5 (`--observe` mode, observer RPCs) | **NEXT UP** 🎯 |
+| **Live Network Observer** | Session 9.5 (`--observe` mode, observer RPCs) | ✅ **Complete** (Node commit d2abe65, GUI commit 4bbd74b) |
 | Dashboard chain status | `getblockchaininfo` | Ready (after 9.6) |
 | Block explorer | `getblock`, `getblockhash` | Ready (after 9.6) |
 | Transaction view | `getrawtransaction` | Ready (after 9.6) |
