@@ -571,8 +571,8 @@ Each session is designed to be completable in a single focused chat session.
 ### Phase 1: Live Observer 🎯
 | Session | Status | Notes |
 |---------|--------|-------|
-| 1.1 Minimal RPC Client | ✅ Complete | Dec 2025 — RPC client, connection store, observer types (commit 4bbd74b) |
-| 1.2 Live Network Observer View | In Progress | Observer page implemented, testing with live node |
+| 1.1 Minimal RPC Client | ✅ Complete | Dec 2025 — JSON-RPC client (client.ts), typed observer interfaces (types.ts), connection store with health checks and polling (connection.ts), getObserverStats/getObservedBlocks/getObservedTxs methods |
+| 1.2 Live Network Observer View | ✅ Complete | Dec 2025 — Live observer page at /observer with real-time block feed (100 recent), transaction feed (1000 recent), network stats (peers, uptime, messages), live block height and hashrate from mempool.space API, stable rendering with derived stores, mempool.space explorer links, contextual connection status messages, live-updating timestamps |
 | 1.3 Connection Settings & Polish | Not Started | |
 
 ### Phase 2: Full RPC & Mock Mode
@@ -639,7 +639,7 @@ Phase 12: Completion          (Full integration testing)
 
 | GUI Feature | Node Requirement | Status |
 |-------------|------------------|--------|
-| **Live Network Observer** | Session 9.5 (`--observe` mode, observer RPCs) | ✅ **Complete** (Node commit d2abe65, GUI commit 4bbd74b) |
+| **Live Network Observer** | Session 9.5 (`--observe` mode, observer RPCs) | ✅ **Complete** (Node Session 9.5 complete, GUI Sessions 1.1 & 1.2 complete) |
 | Dashboard chain status | `getblockchaininfo` | Ready (after 9.6) |
 | Block explorer | `getblock`, `getblockhash` | Ready (after 9.6) |
 | Transaction view | `getrawtransaction` | Ready (after 9.6) |

@@ -51,7 +51,7 @@ bitcoin-echo/             ← Sibling folder (C implementation, to be created)
 - [x] Core types and headers defined (Phase 0 complete)
 
 ### In Progress
-- [ ] Phase 9: Application Layer (Sessions 9.5, 9.6 remaining)
+- [ ] Phase 9: Application Layer (Session 9.6 remaining — Full Node Integration)
 
 ### Not Yet Started
 - [ ] Phase 10: Mining Interface
@@ -1351,7 +1351,7 @@ Use this section to track completion status. Update after each session.
 | 9.2 Event Loop | Complete | Dec 2025 — node_process_peers() peer message handling (ping/pong, addr, headers, blocks, tx, inv/getdata), node_process_blocks() for chain updates, node_maintenance() periodic tasks (peer ping, sync tick, outbound connections, cleanup), main event loop structure in main.c with signal handling, 13/13 tests pass |
 | 9.3 RPC Interface | Complete | Dec 2025 — rpc.h/c with full JSON-RPC 1.0 server: minimal recursive-descent JSON parser, JSON response builder, HTTP/1.0 request handling, 7 RPC methods (getblockchaininfo, getblock, getblockhash, getrawtransaction, sendrawtransaction, getblocktemplate, submitblock), hash formatting with reversed byte order for display, hex encoding/decoding utilities, completed read_net_addr for addr message deserialization, 39/39 tests pass |
 | 9.4 Logging | Complete | Dec 2025 — log.h/c, fixed-format machine-parseable logging, timestamp with milliseconds, log levels (ERROR/WARN/INFO/DEBUG), component-based filtering (MAIN/NET/P2P/CONS/SYNC/POOL/RPC/DB/STOR/CRYP), file output support, thread-safe with platform mutex, plat_mutex_alloc/free added to platform API, 28/28 tests pass |
-| 9.5 Observer Mode | Not Started | The "Pinocchio session" — wires main.c, connects to mainnet, observes live traffic |
+| 9.5 Observer Mode | Complete | Dec 2025 — --observe CLI flag, argument parsing (--datadir, --port, --rpcport), peer discovery via DNS seeds, ring buffers for blocks (100) and transactions (1000), observer RPC methods (getobserverstats, getobservedblocks, getobservedtxs), non-blocking sockets, CORS preflight support, complete peer handshake, INV message parsing, graceful shutdown, connects to Bitcoin mainnet and observes live network traffic |
 | 9.6 Full Node Integration | Not Started | Completes full validating node with all components wired |
 
 ### Phase 10: Mining Interface
