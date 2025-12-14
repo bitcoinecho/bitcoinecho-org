@@ -711,8 +711,13 @@
             }
         }
 
-        ::selection {
+        [data-theme="dark"] ::selection {
             background: rgba(255, 255, 255, 0.2);
+            color: var(--color-accent);
+        }
+
+        [data-theme="light"] ::selection {
+            background: rgba(0, 0, 0, 0.4);
             color: var(--color-accent);
         }
     </style>
