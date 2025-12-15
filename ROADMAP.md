@@ -1474,4 +1474,4 @@ A universal web application providing a visual interface to a running Bitcoin Ec
 
 *This document is the keystone reference for Bitcoin Echo implementation. When in doubt, consult the whitepaper. When the whitepaper is silent, choose simplicity.*
 
-**Bitcoin Echo: The Last Implementation**
+*Build once. Build right. Stop.*

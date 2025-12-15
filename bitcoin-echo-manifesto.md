@@ -1,6 +1,6 @@
-# The Last Implementation
+# Why Bitcoin Echo Freezes
 
-**A Manifesto for Bitcoin Echo**
+**A Manifesto for Permanent Software**
 
 ---
 

@@ -720,4 +720,4 @@ The bitcoin-echo RPC has no authentication. This is fine for localhost-only bind
 
 *This document guides GUI development. For core node implementation, see [ROADMAP.md](ROADMAP.md). For technical specification, see the [Whitepaper](bitcoin-echo-whitepaper.md).*
 
-**Bitcoin Echo: The Last Implementation. Now Visible.**
+*Build once. Build right. Stop. Now Visible.*
