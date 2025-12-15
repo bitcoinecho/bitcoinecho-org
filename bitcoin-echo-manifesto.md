@@ -80,6 +80,30 @@ We are not building for extensibility. We are building a clean seam and leaving 
 
 ---
 
+## Pragmatic Ossification
+
+When we say Bitcoin Echo will "freeze forever," we mean something specific:
+
+**What freezes:**
+- Consensus rules and validation logic
+- Feature set and capabilities
+- Architectural design
+
+**What doesn't freeze:**
+- Critical consensus bugs (fixed via errata: v1.0.1, v1.0.2...)
+- Security vulnerabilities (patched with documented errata)
+- Platform compatibility (OS changes may require platform layer updates)
+- Documentation and comments (improvements and clarifications welcome)
+- Test coverage (additional test vectors and edge cases encouraged)
+- Educational materials (curriculum, guides, and teaching resources)
+
+**The version number tells the story:**
+A century from now, Bitcoin Echo might be at v1.963.369—but v2.0 will never exist. Each increment is a minimal fix, not an evolution. The consensus engine remains frozen.
+
+This is pragmatic ossification: strong intention to freeze, with responsible governance for defects. We're not abandoning the software. We're refusing to evolve it.
+
+---
+
 ## The Closing of Doors
 
 Most projects seek contributors. They welcome pull requests, encourage extensions, publish roadmaps of future work.

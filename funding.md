@@ -64,6 +64,18 @@ While the code freezes upon completion, the educational mission continues: curri
 
 ---
 
+## Frequently Asked Questions
+
+**"If the code freezes, how do you fix bugs?"**
+
+Ossification means no evolution, not abandonment. Critical consensus bugs and security vulnerabilities are fixed via minimal errata releases (v1.0.1, v1.0.2, etc.). Documentation improvements, expanded comments, and additional test coverage are encouraged as part of our educational mission. The version number might reach v1.500.0 over a century through errata and educational improvements. It will never reach v2.0.0.
+
+**"What about future Bitcoin protocol changes?"**
+
+If Bitcoin adopts quantum-resistant signatures or other soft forks, we don't modify Bitcoin Echo v1.0. We create a successor—Bitcoin Echo-Q, Bitcoin Echo-R, etc. Each successor is itself frozen upon completion. See Whitepaper §15 (Cryptographic Succession) for details.
+
+---
+
 ## Current Status
 
 | Phase | Status |

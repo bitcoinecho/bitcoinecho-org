@@ -64,6 +64,8 @@ Most software projects seek contributions. They welcome feature requests, encour
 
 Bitcoin Echo is not a living project. Upon completion, the correct number of future features is zero. The correct number of accepted pull requests is zero. The repository will be archived. The signing keys will be published. The implementation will be complete in the same way that a novel or a mathematical proof is complete—not because no improvement is possible, but because the work has boundaries, and we have reached them.
 
+To be clear: "closing doors" means no new features, no behavioral changes, no protocol evolution. It does not mean abandoning responsibility. Critical consensus bugs and security vulnerabilities will be addressed through minimal errata releases (v1.0.1, v1.0.2, etc.). Platform compatibility updates may occur as operating systems evolve. Documentation improvements, expanded comments, and additional test coverage are encouraged as part of the educational mission. But the consensus engine—once frozen—remains frozen. We may reach v1.100.0 through errata and documentation. We will never reach v2.0.0 through features.
+
 ### 2.6 Why C
 
 Bitcoin Core is written in C++. Why does Bitcoin Echo use C instead?

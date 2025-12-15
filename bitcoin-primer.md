@@ -62,7 +62,7 @@ Bitcoin Echo is a complete implementation of the Bitcoin protocol—the rules th
 
 Most Bitcoin software is actively developed. It changes constantly—new features are added, bugs are fixed, dependencies are updated. Every change introduces risk. If you want to verify the Bitcoin blockchain yourself, you're trusting that all those changes were made correctly.
 
-Bitcoin Echo takes a different approach: it implements the Bitcoin protocol once, correctly, and then stops. The code freezes. No more changes. No evolution. Just a permanent record of how Bitcoin validation works.
+Bitcoin Echo takes a different approach: it implements the Bitcoin protocol once, correctly, and then freezes consensus rules and features forever. Critical bugs get minimal errata patches (v1.0.x). Protocol changes get new successors (Bitcoin Echo-Q). But v2.0? Never. This is pragmatic ossification: no evolution, but responsible maintenance.
 
 ### Why This Matters
 
