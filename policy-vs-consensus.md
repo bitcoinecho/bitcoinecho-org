@@ -131,7 +131,7 @@ This is honest.
 
 This separation isn't new. Early Bitcoin developers understood it clearly.
 
-In discussions about transaction fees, relay policy, and micropayments circa 2010, developers like Gavin Andresen recognized that nodes could have **different fee policies** without fragmenting the network, because **consensus remained intact**.
+In [discussions about transaction fees, relay policy, and micropayments circa 2010](https://satoshi.nakamotoinstitute.org/posts/bitcointalk/threads/86/), Satoshi and developers like Gavin Andresen recognized that nodes could have **different fee policies** without fragmenting the network, because **consensus remained intact**.
 
 The protocol defined what was valid. Policy defined what was relayed. These were understood as separate concerns.
 
