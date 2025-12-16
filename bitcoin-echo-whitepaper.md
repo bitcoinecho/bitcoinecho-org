@@ -158,6 +158,49 @@ Policy decisions reside here. Which transactions to accept into the mempool. Whi
 
 Policy may be adjusted through compile-time constants. There are no configuration files, no command-line flags that alter behavior, no runtime policy changes. The node behaves identically on every execution.
 
+#### 3.3.1 Policy Configuration at Compile Time
+
+Bitcoin Echo requires operators to make explicit policy choices **before compilation**. There are no runtime configuration files, no command-line flags, no "default policy" that smuggles in assumptions.
+
+Bitcoin Core and Bitcoin Knots handle policy through runtime flags like `-datacarriersize`, `-rejecttokens`, and `-permitbaremultisig`. Bitcoin Echo makes these choices permanent at compile time through configuration constants.
+
+**Example policy dimensions** (based on actual Core/Knots options):
+
+**Data carrier (OP_RETURN) limits:**
+- Bitcoin Core v30 default: `-datacarriersize=100000` (effectively unlimited)
+- Bitcoin Core pre-v30: `-datacarriersize=83` (80 bytes of data + overhead)
+- Bitcoin Echo approach: Set `MAX_DATACARRIER_BYTES` at compile time to match operator's philosophy
+
+**Token and inscription filtering:**
+- Bitcoin Knots offers: `-rejecttokens=1` to filter Runes/inscriptions/ordinals at runtime
+- Bitcoin Echo approach: Set `FILTER_INSCRIPTION_PATTERNS` at compile time to enable/disable filtering
+
+**Bare multisig policy:**
+- Configurable via `-permitbaremultisig` in Core/Knots
+- Bitcoin Echo approach: Set `PERMIT_BARE_MULTISIG` compile-time constant
+
+**Transaction relay policy:**
+- Core/Knots use various runtime flags for dust limits, script sizes, signature operation costs
+- Bitcoin Echo approach: All policy constants defined in `src/policy/policy.h` before compilation
+
+**Why compile-time configuration?**
+
+1. **Philosophical honesty**: Policy is a value judgment. Setting `MAX_DATACARRIER_BYTES=80` reflects a belief that Bitcoin should restrict data storage. Setting it to `100000` reflects a belief that consensus-valid data is legitimate. There is no "neutral default."
+
+2. **Auditability**: When you compile Bitcoin Echo, you explicitly choose your policy values. The resulting binary's behavior is deterministic and auditable. No hidden runtime flags can alter relay behavior.
+
+3. **Permanence**: A Bitcoin Echo binary compiled with strict data filtering in 2025 will have the same policy in 2125. Runtime configuration files create drift and ambiguity over time.
+
+**Example policy presets** (configurations to be provided):
+
+- `config/policy_permissive.h`: Core v30-style, accept all consensus-valid transactions
+- `config/policy_restrictive.h`: Knots-style, filter non-monetary transaction patterns
+- `config/policy_minimal.h`: Relay only standard P2PKH/P2WPKH/P2SH transactions
+
+All policy configurations run the **identical consensus engine**. They will agree on which chain is valid and which blocks are canonical. They differ only in what they choose to relay and store temporarily in their mempools.
+
+This is architectural honesty: policy and consensus are separate layers, and should be treated as such.
+
 ### 3.4 Application Layer
 
 The application layer is the entry point and orchestration logic. It initializes the platform abstraction layer, loads or creates the chain database, establishes network connections, and runs the main event loop.

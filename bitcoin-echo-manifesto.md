@@ -74,7 +74,15 @@ The blockchain itself works this way. Block 100,000 is the same today as when it
 
 Bitcoin Echo will work the same way.
 
-Version 1.0 will validate the protocol as it exists at completion. Should the protocol evolve—through a quantum-resistant soft fork or otherwise—a successor will accrete. Bitcoin Echo-Q. Bitcoin Echo-R. Each frozen upon completion. Each valid for its era. Each validating all history that came before.
+### What We Freeze
+
+Bitcoin Echo v1.0 implements the Bitcoin protocol as it exists at the moment of completion—including all consensus rules, all deployed soft forks (P2SH, CSV, CLTV, SegWit, Taproot), and the complete Bitcoin Script instruction set as of 2025.
+
+We are not claiming to preserve "the true Bitcoin" or "Satoshi's vision." Satoshi didn't know about Schnorr signatures or witness segregation. We're preserving Bitcoin-as-it-is-now, creating a permanent reference implementation for this era.
+
+Version 1.0 will validate the protocol as it exists at completion. Should the protocol evolve—through additional soft forks, post-quantum cryptography, or other consensus changes—those will accrete as new implementations: Bitcoin Echo-Q, Bitcoin Echo-R, each frozen upon completion, each validating all history that came before.
+
+This is pragmatic ossification: we freeze *this version* completely, while accepting that Bitcoin itself may continue to evolve through clean, auditable succession.
 
 We are not building for extensibility. We are building a clean seam and leaving a note for whoever comes next.
 
@@ -140,13 +148,13 @@ We are not building something new.
 
 We are preserving something important.
 
-We are leaving behind a faithful echo of Satoshi's protocol, built to outlast its creators.
+We are creating a faithful implementation of Bitcoin's protocol as it exists now—not claiming to capture its eternal essence, but providing a permanent, auditable reference for this era. Should the protocol evolve, future implementations can carry it forward, each faithful to the protocol of its time, as this one is faithful to ours.
 
 ---
 
 **Bitcoin Echo**
 
-*The last implementation.*
+*Built once. Frozen forever. The last implementation of its kind.*
 
 bitcoinecho.org
 
