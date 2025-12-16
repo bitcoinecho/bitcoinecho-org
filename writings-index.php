@@ -100,6 +100,14 @@ include __DIR__ . '/header.php';
         font-size: 0.9375rem;
         color: var(--color-text-muted);
         line-height: 1.6;
+        margin-bottom: 0.75rem;
+    }
+
+    .doc-card-meta {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--color-text-dim);
+        letter-spacing: 0.05em;
     }
 
     @media (max-width: 600px) {
@@ -114,17 +122,18 @@ include __DIR__ . '/header.php';
         <span class="page-label">Writings</span>
         <h1>Essays & Analysis</h1>
         <p class="page-description">
-            Essays and analysis on Bitcoin, software permanence, and protocol design.
+            Essays and analysis on Bitcoin, software permanence, and&nbsp;protocol&nbsp;design.
         </p>
     </div>
 
     <div class="doc-grid">
         <a href="/writings/policy-vs-consensus" class="doc-card">
-            <span class="doc-card-label">Technical Analysis</span>
+            <span class="doc-card-label">Position Paper</span>
             <h2 class="doc-card-title">Policy vs. Consensus</h2>
             <p class="doc-card-description">
-                Understanding the critical distinction between Bitcoin's consensus rules and policy rules—and why freezing policy is just as important as preserving consensus.
+                Why Core and Knots are both right (and both wrong). Understanding the critical distinction between Bitcoin's consensus rules and policy rules—and why configuration transparency matters.
             </p>
+            <div class="doc-card-meta">Published December 15, 2025</div>
         </a>
     </div>
 </main>

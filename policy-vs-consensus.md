@@ -2,6 +2,8 @@
 
 **A Bitcoin Echo Position Paper**
 
+*Published: December 15, 2025*
+
 ---
 
 ## The Current Debate
