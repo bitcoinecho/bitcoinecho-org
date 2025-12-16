@@ -730,10 +730,8 @@
         <div class="nav-inner">
             <a href="/" class="nav-logo">Bitcoin Echo</a>
             <ul class="nav-links">
-                <li><a href="/docs/manifesto" <?= $title === 'Manifesto' ? 'class="active"' : '' ?>>Manifesto</a></li>
-                <li><a href="/docs/whitepaper" <?= $title === 'Whitepaper' ? 'class="active"' : '' ?>>Whitepaper</a></li>
-                <li><a href="/docs/primer" <?= $title === 'Bitcoin Primer' ? 'class="active"' : '' ?>>Primer</a></li>
-                <li><a href="/docs/building" <?= $title === 'Building in the Future' ? 'class="active"' : '' ?>>Building</a></li>
+                <li><a href="/docs">Docs</a></li>
+                <li><a href="/writings">Writings</a></li>
             </ul>
             <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
                 <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
