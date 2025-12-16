@@ -162,40 +162,52 @@ Policy may be adjusted through compile-time constants. There are no configuratio
 
 Bitcoin Echo requires operators to make explicit policy choices **before compilation**. There are no runtime configuration files, no command-line flags, no "default policy" that smuggles in assumptions.
 
-Bitcoin Core and other implementations handle policy through runtime flags like `-datacarriersize`, `-rejecttokens`, and `-permitbaremultisig`. Bitcoin Echo makes these choices permanent at compile time through configuration constants.
+**No policy defaults. No presets. No bundles.**
 
-**Example policy dimensions** (based on Bitcoin Core options):
+All policy constants in `include/echo_policy.h` are commented out. Operators must uncomment and set each value based on their specific operational needs and philosophical beliefs.
 
-**Data carrier (OP_RETURN) limits:**
-- Bitcoin Core v30 default: `-datacarriersize=100000` (effectively unlimited)
-- Bitcoin Core pre-v30: `-datacarriersize=83` (80 bytes of data + overhead)
-- Bitcoin Echo approach: Set `MAX_DATACARRIER_BYTES` at compile time to match operator's philosophy
+**Policy dimensions requiring explicit configuration:**
 
-**Token and inscription filtering:**
-- Some implementations offer runtime flags (e.g., `-rejecttokens=1`) to filter Runes/inscriptions/ordinals
-- Bitcoin Echo approach: Set `FILTER_INSCRIPTION_PATTERNS` at compile time to enable/disable filtering
+- `POLICY_MAX_DATACARRIER_BYTES` — How much OP_RETURN data to relay (0 to 100000 bytes)
+- `POLICY_FILTER_WITNESS_DATA` — Whether to filter inscription patterns (0 or 1)
+- `POLICY_PERMIT_BARE_MULTISIG` — Whether to relay bare multisig transactions (0 or 1)
+- `POLICY_MIN_RELAY_FEE_RATE` — Minimum fee rate in satoshis per 1000 bytes
+- `POLICY_DUST_THRESHOLD` — Minimum output value to relay in satoshis
+- `POLICY_MAX_STANDARD_TX_WEIGHT` — Maximum transaction weight to relay
+- `POLICY_MAX_STANDARD_TX_SIGOPS` — Maximum signature operations per transaction
+- `POLICY_MEMPOOL_MAX_SIZE_MB` — Maximum mempool memory usage
+- `POLICY_MEMPOOL_EXPIRY_HOURS` — Transaction expiration time
+- `POLICY_ENABLE_RBF` — Whether to support replace-by-fee (0 or 1)
 
-**Bare multisig policy:**
-- Configurable via `-permitbaremultisig` in Bitcoin Core
-- Bitcoin Echo approach: Set `PERMIT_BARE_MULTISIG` compile-time constant
+Each constant is heavily documented with historical context, example values, and tradeoff explanations to help operators make informed choices.
 
-**Transaction relay policy:**
-- Bitcoin Core uses various runtime flags for dust limits, script sizes, signature operation costs
-- Bitcoin Echo approach: All policy constants defined in `src/policy/policy.h` before compilation
+**Implementation pattern:**
+
+Policy enforcement uses `#ifdef` checks. If a constant is undefined, that restriction doesn't exist:
+
+```c
+#ifdef POLICY_MAX_DATACARRIER_BYTES
+  if (datacarrier_size > POLICY_MAX_DATACARRIER_BYTES) {
+    reject_transaction();
+  }
+#endif
+```
+
+If `POLICY_MAX_DATACARRIER_BYTES` is not defined, the check doesn't exist and the transaction is accepted if consensus-valid.
 
 **Why compile-time configuration?**
 
-1. **Philosophical honesty**: Policy is a value judgment. Setting `MAX_DATACARRIER_BYTES=80` reflects a belief that Bitcoin should restrict data storage. Setting it to `100000` reflects a belief that consensus-valid data is legitimate. There is no "neutral default."
+1. **Philosophical honesty**: Policy is a value judgment. There is no "neutral default." Every choice reflects beliefs about what Bitcoin should be used for.
 
-2. **Auditability**: When you compile Bitcoin Echo, you explicitly choose your policy values. The resulting binary's behavior is deterministic and auditable. No hidden runtime flags can alter relay behavior.
+2. **Auditability**: Policy values are visible in source code. The resulting binary's behavior is deterministic and auditable. No hidden runtime flags can alter relay behavior.
 
-3. **Permanence**: A Bitcoin Echo binary compiled with strict data filtering in 2025 will have the same policy in 2125. Runtime configuration files create drift and ambiguity over time.
+3. **Permanence**: A Bitcoin Echo binary compiled with specific policy in 2025 will have the same policy in 2125. Runtime configuration files create drift and ambiguity over time.
 
-**Example policy presets** (configurations to be provided):
+4. **Transparency**: No presets or bundles that obscure individual choices. Every operator sets every value explicitly.
 
-- `config/policy_permissive.h`: Core v30-style, accept all consensus-valid transactions
-- `config/policy_restrictive.h`: Conservative relay policy, filter non-monetary transaction patterns
-- `config/policy_minimal.h`: Relay only standard P2PKH/P2WPKH/P2SH transactions
+**Architectural reality:**
+
+Consensus defines what's valid. Policy optionally restricts what's relayed. If you don't define policy, you relay anything consensus allows. This isn't a "default"—it's the architectural reality that consensus is the baseline.
 
 All policy configurations run the **identical consensus engine**. They will agree on which chain is valid and which blocks are canonical. They differ only in what they choose to relay and store temporarily in their mempools.
 
