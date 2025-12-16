@@ -304,9 +304,9 @@ That's what we're building.
 
 ## Further Reading
 
-- [Bitcoin Echo Manifesto](bitcoin-echo-manifesto.md) — Why we freeze
-- [Bitcoin Echo Whitepaper](bitcoin-echo-whitepaper.md) — Technical specification
-- [Section 3.3.1: Policy Configuration](bitcoin-echo-whitepaper.md#331-policy-configuration-at-compile-time) — Detailed policy options
+- [Bitcoin Echo Manifesto](/docs/manifesto) — Why we freeze
+- [Bitcoin Echo Whitepaper](/docs/whitepaper) — Technical specification
+- [Section 3.3.1: Policy Configuration](/docs/whitepaper#331-policy-configuration-at-compile-time) — Detailed policy options
 
 ---
 
