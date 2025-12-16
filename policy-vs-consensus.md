@@ -104,28 +104,16 @@ The protocol layer implements mempool policy, peer management, and relay decisio
 - `-permitbaremultisig=0` (disable bare multisig relay)
 
 **Bitcoin Echo uses compile-time constants:**
-- `MAX_DATACARRIER_BYTES` — Set to 80 (restrictive) or 100000 (permissive) before compilation
-- `FILTER_INSCRIPTION_PATTERNS` — Enable/disable token and inscription filtering
-- `PERMIT_BARE_MULTISIG` — Allow or reject bare multisig transactions
+- `POLICY_MAX_DATACARRIER_BYTES` — How much OP_RETURN data to relay (0 to 100000 bytes)
+- `POLICY_FILTER_WITNESS_DATA` — Whether to filter inscription patterns (0 or 1)
+- `POLICY_PERMIT_BARE_MULTISIG` — Whether to relay bare multisig (0 or 1)
+- `POLICY_MIN_RELAY_FEE_RATE` — Minimum fee rate in satoshis per 1000 bytes
+- `POLICY_DUST_THRESHOLD` — Minimum output value to relay
+- And several others for transaction size, sigops, mempool limits, RBF policy
 
-**Example policy presets:**
+**No presets. No bundles.**
 
-**Restrictive** (Knots philosophy)
-- `MAX_DATACARRIER_BYTES=80`
-- `FILTER_INSCRIPTION_PATTERNS=1`
-- `PERMIT_BARE_MULTISIG=0`
-- Prioritizes monetary transactions, filters data-carrying schemes
-
-**Permissive** (Core v30 philosophy)
-- `MAX_DATACARRIER_BYTES=100000`
-- `FILTER_INSCRIPTION_PATTERNS=0`
-- `PERMIT_BARE_MULTISIG=1`
-- Accepts all consensus-valid transactions equally
-
-**Custom** (Operator-defined)
-- Define specific policy thresholds
-- Optimize for particular use cases
-- Balance resource constraints with relay preferences
+Every operator sets every value based on their operational needs and philosophical beliefs. The configuration file is heavily commented with historical context and tradeoff explanations to help operators make informed choices.
 
 ### Why Compile-Time Configuration?
 
@@ -173,15 +161,18 @@ Bitcoin Echo lets you run that policy **explicitly**, without pretending it prev
 
 ### For Everyone Else
 
-You don't have to pick a tribe. You can run the **same consensus engine** as everyone else while choosing policy that matches your values.
+You don't have to pick a tribe. You can run the **same consensus engine** as everyone else while setting policy values that match your specific needs.
 
-Want strict filtering? Compile with `POLICY_STRICT`.
+Open `include/echo_policy.h`. Read the comments. Uncomment each constant. Set each value based on:
+- Your bandwidth and storage constraints
+- Your beliefs about Bitcoin's purpose
+- Your risk tolerance for spam, legal exposure, or resource exhaustion
 
-Want maximum permissiveness? Compile with `POLICY_PERMISSIVE`.
+No presets. No bundles. No "what we think you want."
 
-Have a specific use case? Configure `POLICY_CUSTOM`.
+Every operator makes explicit choices. Every node's policy is visible in its source code.
 
-All three configurations produce nodes that agree on the valid chain. The debate becomes what it should be: a technical discussion about tradeoffs, not a religious war about Bitcoin's soul.
+All configurations produce nodes that agree on the valid chain. The debate becomes what it should be: a technical discussion about operational tradeoffs, not a religious war about Bitcoin's soul.
 
 ---
 
