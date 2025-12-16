@@ -151,6 +151,25 @@ Educational mission, clear deliverables, and long-term preservation goals. Upon 
 
 ---
 
+## Treasury Philosophy
+
+Bitcoin Echo Foundation will be among the first Bitcoin Treasury Non-profits—a fitting approach for an organization dedicated to Bitcoin's long-term preservation.
+
+**Dual Treasury Strategy:**
+
+- **Operating Reserve (USD/Stablecoins)**: 12-18 months of operating expenses maintained in stable assets, ensuring predictable execution of audits, development milestones, and infrastructure commitments
+- **Long-term Preservation Reserve (Bitcoin)**: Strategic Bitcoin holdings for the multi-decade educational mission, accepting and holding BTC donations rather than converting to fiat
+
+**Why This Approach?**
+
+Our mission spans centuries, not quarters. Bitcoin Echo aims to serve as an educational artifact and protocol reference for generations of developers who haven't been born yet. A growing Bitcoin treasury ensures the foundation can fulfill its preservation and educational mandate as long as the Bitcoin network itself endures.
+
+This isn't a speculative bet—it's philosophical consistency. We're building permanent Bitcoin infrastructure. Our treasury should reflect the permanence we're building for.
+
+We accept donations in both Bitcoin and USD. Bitcoin donations contribute to our long-term preservation reserve. USD donations fund immediate operational needs and the path to v1.0 release.
+
+---
+
 ## Team
 
 **Lead Developer**: Building Bitcoin Echo with AI assistance, ensuring the entire codebase fits in one person's head. This is intentional. Complexity is the enemy of auditability.
