@@ -262,6 +262,10 @@ $active_nav = $active_nav ?? null;
             list-style: none;
         }
 
+        .nav-links > li {
+            position: relative;
+        }
+
         .nav-links a {
             font-family: var(--font-mono);
             font-size: 0.75rem;
@@ -272,7 +276,7 @@ $active_nav = $active_nav ?? null;
             position: relative;
         }
 
-        .nav-links a::after {
+        .nav-links > li > a::after {
             content: '';
             position: absolute;
             bottom: -4px;
@@ -288,8 +292,61 @@ $active_nav = $active_nav ?? null;
             color: var(--color-accent);
         }
 
-        .nav-links a:hover::after {
+        .nav-links > li > a:hover::after {
             width: 100%;
+        }
+
+        /* Dropdown menus */
+        .nav-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 1rem;
+            background: var(--color-bg-elevated);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            min-width: 220px;
+            padding: 0.5rem 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s var(--ease-out), visibility 0.2s, margin-top 0.2s var(--ease-out);
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .nav-links > li:hover .nav-dropdown {
+            opacity: 1;
+            visibility: visible;
+            margin-top: 0.75rem;
+        }
+
+        .nav-dropdown a {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            text-transform: none;
+            color: var(--color-text-muted);
+            transition: all 0.2s ease;
+            border-left: 2px solid transparent;
+        }
+
+        .nav-dropdown a:hover {
+            color: var(--color-accent);
+            background: var(--color-surface);
+            border-left-color: var(--color-accent);
+        }
+
+        .nav-dropdown-label {
+            display: block;
+            padding: 0.5rem 1.5rem 0.25rem;
+            font-family: var(--font-mono);
+            font-size: 0.625rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--color-text-dim);
+            font-weight: 400;
         }
 
         /* Hamburger Menu Button */
@@ -350,7 +407,7 @@ $active_nav = $active_nav ?? null;
         }
 
         .mobile-menu.active {
-            max-height: 300px;
+            max-height: 500px;
         }
 
         .mobile-menu-links {
@@ -358,15 +415,15 @@ $active_nav = $active_nav ?? null;
             padding: 1rem 2rem;
         }
 
-        .mobile-menu-links li {
+        .mobile-menu-links > li {
             border-bottom: 1px solid var(--color-border);
         }
 
-        .mobile-menu-links li:last-child {
+        .mobile-menu-links > li:last-child {
             border-bottom: none;
         }
 
-        .mobile-menu-links a {
+        .mobile-menu-links > li > a {
             display: block;
             padding: 1rem 0;
             font-family: var(--font-mono);
@@ -378,8 +435,42 @@ $active_nav = $active_nav ?? null;
             transition: color 0.3s ease;
         }
 
-        .mobile-menu-links a:hover {
+        .mobile-menu-links > li > a:hover {
             color: var(--color-accent);
+        }
+
+        /* Mobile submenu items */
+        .mobile-submenu {
+            list-style: none;
+            padding: 0;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .mobile-submenu li {
+            border-top: 1px solid var(--color-border);
+        }
+
+        .mobile-submenu li:first-child {
+            border-top: none;
+        }
+
+        .mobile-submenu a {
+            display: block;
+            padding: 0.75rem 0 0.75rem 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            text-transform: none;
+            color: var(--color-text-muted);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            border-left: 2px solid transparent;
+            margin-left: 1rem;
+        }
+
+        .mobile-submenu a:hover {
+            color: var(--color-accent);
+            border-left-color: var(--color-accent);
         }
 
         /* Theme Toggle */
@@ -474,8 +565,21 @@ $active_nav = $active_nav ?? null;
             <a href="/" class="nav-logo">Bitcoin Echo</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="/docs"<?php echo $active_nav === 'docs' ? ' class="active"' : ''; ?>>Docs</a></li>
-                    <li><a href="/writings"<?php echo $active_nav === 'writings' ? ' class="active"' : ''; ?>>Writings</a></li>
+                    <li>
+                        <a href="/docs"<?php echo $active_nav === 'docs' ? ' class="active"' : ''; ?>>Docs</a>
+                        <div class="nav-dropdown">
+                            <a href="/docs/manifesto">Manifesto</a>
+                            <a href="/docs/whitepaper">Whitepaper</a>
+                            <a href="/docs/primer">Bitcoin Primer</a>
+                            <a href="/docs/building">Building Guide</a>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="/writings"<?php echo $active_nav === 'writings' ? ' class="active"' : ''; ?>>Writings</a>
+                        <div class="nav-dropdown">
+                            <a href="/writings/policy-vs-consensus">Policy vs. Consensus</a>
+                        </div>
+                    </li>
                 </ul>
                 <button class="hamburger-btn" id="hamburger-toggle" aria-label="Toggle menu">
                     <svg class="icon-hamburger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -511,7 +615,20 @@ $active_nav = $active_nav ?? null;
     <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobile-menu">
         <ul class="mobile-menu-links">
-            <li><a href="/docs">Docs</a></li>
-            <li><a href="/writings">Writings</a></li>
+            <li>
+                <a href="/docs">Docs</a>
+                <ul class="mobile-submenu">
+                    <li><a href="/docs/manifesto">Manifesto</a></li>
+                    <li><a href="/docs/whitepaper">Whitepaper</a></li>
+                    <li><a href="/docs/primer">Bitcoin Primer</a></li>
+                    <li><a href="/docs/building">Building Guide</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="/writings">Writings</a>
+                <ul class="mobile-submenu">
+                    <li><a href="/writings/policy-vs-consensus">Policy vs. Consensus</a></li>
+                </ul>
+            </li>
         </ul>
     </div>
