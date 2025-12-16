@@ -117,6 +117,8 @@ Every operator sets every value based on their operational needs and philosophic
 
 ### Why Compile-Time Configuration?
 
+Bitcoin Echo has no pre-built binaries. Every operator compiles their own node from source, configuring policy constants before compilation. This isn't a barrier—it's a feature.
+
 Because **policy is a value judgment**, and we refuse to pretend otherwise.
 
 There is no "neutral default" for mempool policy. Accepting everything is a choice. Filtering data-carrying transactions is a choice. Both reflect beliefs about what Bitcoin should be used for.
@@ -264,7 +266,7 @@ Operators must explicitly uncomment and configure policy before compilation:
 Consensus defines what's valid. Policy optionally restricts what's relayed.
 If you don't define policy, you relay anything consensus allows.
 
-This is architectural reality, not a "default setting."
+To be clear: consensus-only as our baseline *is* a choice—we believe it's the honest one, because policy should restrict consensus, not define a parallel rule system. But we won't pretend this isn't a philosophical position. It is. The difference is we're explicit about it.
 
 **Nodes with different policies still agree on valid blocks.** Policy affects relay, not consensus.
 
@@ -279,8 +281,8 @@ This is architectural reality, not a "default setting."
 /* Connection timeout (milliseconds) */
 #define PLATFORM_CONNECT_TIMEOUT_MS 5000
 
-/* Mempool size limit (megabytes) */
-#define POLICY_MEMPOOL_MAX_SIZE_MB 300
+/* Maximum log file size before rotation */
+#define PLATFORM_LOG_MAX_SIZE_BYTES 10485760
 ```
 
 **These values affect performance and resource usage, not consensus or policy philosophy.**
