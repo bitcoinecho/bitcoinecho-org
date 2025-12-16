@@ -162,9 +162,9 @@ Policy may be adjusted through compile-time constants. There are no configuratio
 
 Bitcoin Echo requires operators to make explicit policy choices **before compilation**. There are no runtime configuration files, no command-line flags, no "default policy" that smuggles in assumptions.
 
-Bitcoin Core and Bitcoin Knots handle policy through runtime flags like `-datacarriersize`, `-rejecttokens`, and `-permitbaremultisig`. Bitcoin Echo makes these choices permanent at compile time through configuration constants.
+Bitcoin Core and other implementations handle policy through runtime flags like `-datacarriersize`, `-rejecttokens`, and `-permitbaremultisig`. Bitcoin Echo makes these choices permanent at compile time through configuration constants.
 
-**Example policy dimensions** (based on actual Core/Knots options):
+**Example policy dimensions** (based on Bitcoin Core options):
 
 **Data carrier (OP_RETURN) limits:**
 - Bitcoin Core v30 default: `-datacarriersize=100000` (effectively unlimited)
@@ -172,15 +172,15 @@ Bitcoin Core and Bitcoin Knots handle policy through runtime flags like `-dataca
 - Bitcoin Echo approach: Set `MAX_DATACARRIER_BYTES` at compile time to match operator's philosophy
 
 **Token and inscription filtering:**
-- Bitcoin Knots offers: `-rejecttokens=1` to filter Runes/inscriptions/ordinals at runtime
+- Some implementations offer runtime flags (e.g., `-rejecttokens=1`) to filter Runes/inscriptions/ordinals
 - Bitcoin Echo approach: Set `FILTER_INSCRIPTION_PATTERNS` at compile time to enable/disable filtering
 
 **Bare multisig policy:**
-- Configurable via `-permitbaremultisig` in Core/Knots
+- Configurable via `-permitbaremultisig` in Bitcoin Core
 - Bitcoin Echo approach: Set `PERMIT_BARE_MULTISIG` compile-time constant
 
 **Transaction relay policy:**
-- Core/Knots use various runtime flags for dust limits, script sizes, signature operation costs
+- Bitcoin Core uses various runtime flags for dust limits, script sizes, signature operation costs
 - Bitcoin Echo approach: All policy constants defined in `src/policy/policy.h` before compilation
 
 **Why compile-time configuration?**
@@ -194,7 +194,7 @@ Bitcoin Core and Bitcoin Knots handle policy through runtime flags like `-dataca
 **Example policy presets** (configurations to be provided):
 
 - `config/policy_permissive.h`: Core v30-style, accept all consensus-valid transactions
-- `config/policy_restrictive.h`: Knots-style, filter non-monetary transaction patterns
+- `config/policy_restrictive.h`: Conservative relay policy, filter non-monetary transaction patterns
 - `config/policy_minimal.h`: Relay only standard P2PKH/P2WPKH/P2SH transactions
 
 All policy configurations run the **identical consensus engine**. They will agree on which chain is valid and which blocks are canonical. They differ only in what they choose to relay and store temporarily in their mempools.
