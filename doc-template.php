@@ -792,6 +792,10 @@
                 display: none;
             }
 
+            .nav-right {
+                gap: 0.75rem;
+            }
+
             .hamburger-btn {
                 display: flex;
                 order: 2;
