@@ -794,6 +794,11 @@
 
             .hamburger-btn {
                 display: flex;
+                order: 2;
+            }
+
+            .theme-btn {
+                order: 1;
             }
 
             .footer-inner {
