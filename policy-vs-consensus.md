@@ -221,35 +221,59 @@ Bitcoin Echo's configuration structure demonstrates architectural separation in 
 
 **These values define what makes a block valid. They are FROZEN and identical for all Bitcoin Echo nodes.**
 
-### Policy Layer (Configurable, Operator-Controlled)
+### Policy Layer (No Defaults, Operator Must Choose)
 
 [`echo_policy.h`](https://github.com/bitcoinecho/bitcoin-echo/blob/main/include/echo_policy.h) — The relay and mempool rules each operator chooses:
 
+**Bitcoin Echo has NO policy defaults. All policy constants are commented out.**
+
+Operators must explicitly uncomment and configure policy before compilation:
+
 ```c
-/* Data carrier (OP_RETURN) policy.
- * Historical values: 40 bytes (2013), 80 bytes (2014-2024),
- * 100000 bytes (effectively unlimited, Core v30)
+/*
+ * Data carrier (OP_RETURN) policy - POLICY_MAX_DATACARRIER_BYTES
  *
  * Your choice reflects belief about Bitcoin's purpose:
- * - Low values: Prioritize monetary transactions
- * - High values: Treat all consensus-valid uses as legitimate
+ * - 0: No data embedding allowed in relay
+ * - 40-83: Minimal data for timestamping/commitments
+ * - 100000: All consensus-valid data is legitimate
+ *
+ * UNCOMMENT ONE:
  */
-#define POLICY_MAX_DATACARRIER_BYTES 80
+// #define POLICY_MAX_DATACARRIER_BYTES 0       /* No data relay */
+// #define POLICY_MAX_DATACARRIER_BYTES 80      /* Conservative */
+// #define POLICY_MAX_DATACARRIER_BYTES 100000  /* Permissive */
 
-/* Witness data filtering.
- * 0 = Accept all consensus-valid witness data
- * 1 = Filter transactions with arbitrary data patterns
+/*
+ * Witness data filtering - POLICY_FILTER_WITNESS_DATA
+ *
+ * UNCOMMENT ONE:
  */
-#define POLICY_FILTER_WITNESS_DATA 0
+// #define POLICY_FILTER_WITNESS_DATA 0  /* Accept all witness data */
+// #define POLICY_FILTER_WITNESS_DATA 1  /* Filter inscriptions */
 
-/* Bare multisig relay.
- * 0 = Reject bare multisig (reduce UTXO bloat)
- * 1 = Accept bare multisig (maximum compatibility)
+/*
+ * Bare multisig relay - POLICY_PERMIT_BARE_MULTISIG
+ *
+ * UNCOMMENT ONE:
  */
-#define POLICY_PERMIT_BARE_MULTISIG 1
+// #define POLICY_PERMIT_BARE_MULTISIG 0  /* Reject bare multisig */
+// #define POLICY_PERMIT_BARE_MULTISIG 1  /* Accept bare multisig */
 ```
 
-**These values control relay behavior. They are CONFIGURABLE at compile time. Nodes with different policies still agree on valid blocks.**
+**If you leave all policy constants commented out:**
+- Policy enforcement code checks `#ifdef POLICY_CONSTANT_NAME`
+- If undefined: the check doesn't exist, transaction is accepted if consensus-valid
+- If defined: the policy restriction is enforced
+
+**This means: no policy = no restrictions beyond consensus rules.**
+
+Consensus defines what's valid. Policy optionally restricts what's relayed.
+If you don't define policy, you relay anything consensus allows.
+
+This is architectural reality, not a "default setting."
+
+**Nodes with different policies still agree on valid blocks.** Policy affects relay, not consensus.
 
 ### Platform Layer (Pragmatic, May Evolve)
 
@@ -270,11 +294,20 @@ Bitcoin Echo's configuration structure demonstrates architectural separation in 
 
 ### Why This Matters
 
-Bitcoin Core and Knots mix these concerns. Their configuration uses runtime flags like `-datacarriersize=100000` that appear neutral but encode philosophical choices.
+Bitcoin Core and other implementations mix these concerns. Their configuration uses runtime flags like `-datacarriersize=100000` that appear neutral but encode philosophical choices.
 
-Bitcoin Echo makes the choice **explicit and visible in the source code**. An operator compiling Bitcoin Echo must consciously set `POLICY_MAX_DATACARRIER_BYTES` to their preferred value. There is no hidden default.
+Bitcoin Echo makes the choice **explicit and visible in the source code**. An operator compiling Bitcoin Echo must uncomment and set `POLICY_MAX_DATACARRIER_BYTES` to their preferred value. **All policy constants are commented out.**
 
-**This is architectural honesty.** The code structure itself enforces the separation we're advocating.
+**There are NO defaults.**
+
+The implementation uses `#ifdef` checks: if a policy constant is undefined, that restriction doesn't exist. The transaction is accepted if it's consensus-valid.
+
+This is simple:
+- Consensus defines what's **valid**
+- Policy optionally restricts what's **relayed**
+- No policy defined = no restriction = relay anything consensus allows
+
+**This is architectural honesty.** Policy is an optional filter on top of consensus, not a required parallel configuration. The code structure itself enforces the separation we're advocating.
 
 ---
 
