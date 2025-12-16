@@ -184,6 +184,12 @@
             color: var(--color-text);
         }
 
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+        }
+
         .nav-links {
             display: flex;
             gap: 2rem;
@@ -202,6 +208,96 @@
 
         .nav-links a:hover,
         .nav-links a.active {
+            color: var(--color-accent);
+        }
+
+        /* Hamburger Menu Button */
+        .hamburger-btn {
+            background: none;
+            border: 1px solid var(--color-border);
+            cursor: pointer;
+            padding: 0.5rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            transition: all 0.3s ease;
+            color: var(--color-text-muted);
+        }
+
+        .hamburger-btn:hover {
+            border-color: var(--color-text-dim);
+            color: var(--color-text);
+        }
+
+        .hamburger-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .hamburger-btn .icon-hamburger,
+        .hamburger-btn .icon-close {
+            display: none;
+        }
+
+        .hamburger-btn .icon-hamburger {
+            display: block;
+        }
+
+        .hamburger-btn.active .icon-hamburger {
+            display: none;
+        }
+
+        .hamburger-btn.active .icon-close {
+            display: block;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            position: fixed;
+            top: 85px;
+            left: 0;
+            right: 0;
+            background: var(--color-bg-elevated);
+            border-bottom: 1px solid var(--color-border);
+            z-index: 99;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .mobile-menu.active {
+            max-height: 300px;
+        }
+
+        .mobile-menu-links {
+            list-style: none;
+            padding: 1rem 2rem;
+        }
+
+        .mobile-menu-links li {
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .mobile-menu-links li:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-menu-links a {
+            display: block;
+            padding: 1rem 0;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-text);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .mobile-menu-links a:hover {
             color: var(--color-accent);
         }
 
@@ -696,6 +792,10 @@
                 display: none;
             }
 
+            .hamburger-btn {
+                display: flex;
+            }
+
             .footer-inner {
                 flex-direction: column;
                 text-align: center;
@@ -729,11 +829,23 @@
     <nav>
         <div class="nav-inner">
             <a href="/" class="nav-logo">Bitcoin Echo</a>
-            <ul class="nav-links">
-                <li><a href="/docs">Docs</a></li>
-                <li><a href="/writings">Writings</a></li>
-            </ul>
-            <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="/docs">Docs</a></li>
+                    <li><a href="/writings">Writings</a></li>
+                </ul>
+                <button class="hamburger-btn" id="hamburger-toggle" aria-label="Toggle menu">
+                    <svg class="icon-hamburger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                    <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+                <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
                 <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="5" />
                     <line x1="12" y1="1" x2="12" y2="3" />
@@ -749,8 +861,17 @@
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
             </button>
+            </div>
         </div>
     </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobile-menu">
+        <ul class="mobile-menu-links">
+            <li><a href="/docs">Docs</a></li>
+            <li><a href="/writings">Writings</a></li>
+        </ul>
+    </div>
 
     <main>
         <article class="doc-content">
@@ -801,6 +922,8 @@
     <script>
         // Theme toggle
         const themeToggle = document.getElementById('theme-toggle');
+        const hamburgerToggle = document.getElementById('hamburger-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
         const html = document.documentElement;
 
         themeToggle.addEventListener('click', () => {
@@ -808,6 +931,21 @@
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             html.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
+        });
+
+        // Mobile menu toggle
+        hamburgerToggle.addEventListener('click', () => {
+            hamburgerToggle.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking a link
+        const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+        mobileMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                hamburgerToggle.classList.remove('active');
+                mobileMenu.classList.remove('active');
+            });
         });
 
         // Evergreen year
