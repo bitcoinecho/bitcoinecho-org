@@ -64,9 +64,9 @@ if (isset($allDocs[$uri])) {
     exit;
 }
 
-// Homepage — serve the static index.html
+// Homepage — serve home.php
 if ($uri === '' || $uri === 'index.html') {
-    include __DIR__ . '/index.html';
+    include __DIR__ . '/home.php';
     exit;
 }
 

@@ -1,1052 +1,374 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<?php
+/**
+ * Bitcoin Echo — Document Template
+ *
+ * Template for rendering markdown documents.
+ * Variables provided by index.php:
+ * - $title: Document title
+ * - $content: Parsed HTML content from markdown
+ */
 
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CHQTPHCD7L"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-CHQTPHCD7L');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($title) ?> — Bitcoin Echo</title>
-    <meta name="description" content="<?= htmlspecialchars($title) ?> — Bitcoin Echo: Build once. Build right. Stop.">
-    <meta name="theme-color" content="#0a0a0a">
-    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32" />
-    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16" />
+// Set page metadata for header
+$page_title = htmlspecialchars($title) . ' — Bitcoin Echo';
+$page_description = htmlspecialchars($title) . ' — Bitcoin Echo: Build once. Build right. Stop.';
+$active_nav = null; // Don't highlight nav on document pages
+$show_donation = true; // Show donation section on document pages
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="Bitcoin Echo — Build once. Build right. Stop.">
-    <meta property="og:description"
-        content="A complete Bitcoin protocol implementation in pure C, designed to freeze forever upon completion. Zero dependencies. Built for permanence, not continued development. bitcoinecho.org">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://bitcoinecho.org">
-    <meta property="og:site_name" content="Bitcoin Echo">
-    <meta property="og:locale" content="en_US">
-    <meta property="og:image" content="https://bitcoinecho.org/bitcoin-echo-og-image.png?v=2">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="628">
-    <meta property="og:image:alt" content="Bitcoin Echo symbol — a stylized B within a circuit-like design">
-    <meta property="og:image:type" content="image/jpeg">
+// Include header
+include __DIR__ . '/header.php';
+?>
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Bitcoin Echo — Build once. Build right. Stop.">
-    <meta name="twitter:description"
-        content="A complete Bitcoin protocol implementation in pure C, designed to freeze forever upon completion. Zero dependencies. Built for permanence, not continued development.">
-    <meta name="twitter:image" content="https://bitcoinecho.org/bitcoin-echo-og-image.png?v=2">
-    <meta name="twitter:image:alt" content="Bitcoin Echo symbol — a stylized B within a circuit-like design">
-    <meta name="twitter:site" content="@bitcoinechoorg">
+<style>
+    /* Document-specific styles */
+    main {
+        position: relative;
+        z-index: 1;
+        max-width: 750px;
+        margin: 0 auto;
+        padding: 8rem 2rem 4rem;
+        user-select: text;
+    }
 
-    <!-- Early theme detection to prevent flash -->
-    <script>
-        (function () {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                document.documentElement.setAttribute('data-theme', savedTheme);
-            } else {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-            }
-        })();
-    </script>
+    /* Document Header */
+    .doc-header {
+        text-align: center;
+        margin-bottom: 4rem;
+        padding-bottom: 3rem;
+        border-bottom: 1px solid var(--color-border);
+    }
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    .doc-label {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--color-text-dim);
+        margin-bottom: 1rem;
+        display: block;
+    }
 
-    <style>
-        :root {
-            --font-serif: 'Libre Baskerville', Georgia, serif;
-            --font-mono: 'Courier Prime', 'Courier New', monospace;
-            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-        }
+    .doc-header h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 400;
+        line-height: 1.2;
+        margin-bottom: 1rem;
+    }
 
-        /* Dark theme (default) */
-        [data-theme="dark"] {
-            --color-bg: #0a0a0a;
-            --color-bg-elevated: #111111;
-            --color-surface: #1a1a1a;
-            --color-border: #2a2a2a;
-            --color-text: #e8e8e8;
-            --color-text-muted: #888888;
-            --color-text-dim: #555555;
-            --color-accent: #ffffff;
-            --color-glow: rgba(255, 255, 255, 0.03);
-            --color-symbol-invert: invert(1);
-            --color-nav-solid: rgba(10, 10, 10, 0.95);
-            --color-code-bg: #161616;
-        }
+    .doc-subtitle {
+        font-style: italic;
+        color: var(--color-text-muted);
+        font-size: 1.125rem;
+    }
 
-        /* Light theme */
-        [data-theme="light"] {
-            --color-bg: #f8f6f3;
-            --color-bg-elevated: #ffffff;
-            --color-surface: #eeebe6;
-            --color-border: #d4d0c8;
-            --color-text: #1a1a1a;
-            --color-text-muted: #5a5a5a;
-            --color-text-dim: #8a8a8a;
-            --color-accent: #0a0a0a;
-            --color-glow: rgba(0, 0, 0, 0.03);
-            --color-symbol-invert: invert(0);
-            --color-nav-solid: rgba(248, 246, 243, 0.95);
-            --color-code-bg: #e8e5e0;
-        }
+    /* Article Content — Markdown Styling */
+    .doc-content {
+        font-size: 1.0625rem;
+    }
 
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    .doc-content h1,
+    .doc-content h2,
+    .doc-content h3,
+    .doc-content h4,
+    .doc-content h5,
+    .doc-content h6 {
+        position: relative;
+        scroll-margin-top: 6rem;
+    }
 
-        /* Ensure text selection is enabled by default */
-        * {
-            -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
-            user-select: text;
-        }
+    .doc-content h1 {
+        font-size: 2rem;
+        font-weight: 400;
+        margin: 3rem 0 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--color-border);
+    }
 
-        html {
-            scroll-behavior: smooth;
-            font-size: 16px;
-        }
+    .doc-content h2 {
+        font-size: 1.5rem;
+        font-weight: 400;
+        margin: 2.5rem 0 1rem;
+        color: var(--color-text);
+    }
 
-        body {
-            font-family: var(--font-serif);
-            background-color: var(--color-bg);
-            color: var(--color-text);
-            line-height: 1.8;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            user-select: text;
-            -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
-        }
+    .doc-content h3 {
+        font-size: 1.25rem;
+        font-weight: 400;
+        margin: 2rem 0 0.75rem;
+        color: var(--color-text);
+    }
 
-        /* Background pattern */
-        .bg-pattern {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.4;
-            background-image:
-                radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
-                repeating-linear-gradient(0deg, transparent, transparent 100px, rgba(255, 255, 255, 0.008) 100px, rgba(255, 255, 255, 0.008) 101px),
-                repeating-linear-gradient(90deg, transparent, transparent 100px, rgba(255, 255, 255, 0.008) 100px, rgba(255, 255, 255, 0.008) 101px);
-        }
+    .doc-content h4 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 1.5rem 0 0.5rem;
+    }
 
-        /* Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 100;
-            padding: 1.5rem 0;
-            background: var(--color-nav-solid);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--color-border);
-        }
+    /* Header link icon on hover */
+    .doc-content h1::before,
+    .doc-content h2::before,
+    .doc-content h3::before,
+    .doc-content h4::before,
+    .doc-content h5::before,
+    .doc-content h6::before {
+        content: '🔗';
+        position: absolute;
+        left: -1.5rem;
+        top: 0;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        font-size: 0.875em;
+        line-height: inherit;
+        text-decoration: none;
+        user-select: none;
+    }
 
-        .nav-inner {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
+    .doc-content h1:hover::before,
+    .doc-content h2:hover::before,
+    .doc-content h3:hover::before,
+    .doc-content h4:hover::before,
+    .doc-content h5:hover::before,
+    .doc-content h6:hover::before {
+        opacity: 0.5;
+    }
 
-        .nav-logo {
-            font-family: var(--font-mono);
-            font-size: 0.875rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--color-text-muted);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
+    .doc-content h1[id]:hover,
+    .doc-content h2[id]:hover,
+    .doc-content h3[id]:hover,
+    .doc-content h4[id]:hover,
+    .doc-content h5[id]:hover,
+    .doc-content h6[id]:hover {
+        padding-left: 0.5rem;
+        margin-left: -0.5rem;
+    }
 
-        .nav-logo:hover {
-            color: var(--color-text);
-        }
+    /* Copy feedback notification */
+    .header-copy-feedback {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin-left: 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        vertical-align: middle;
+    }
 
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 2.5rem;
-        }
+    .header-copy-feedback.show {
+        opacity: 1;
+    }
 
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
+    .header-copy-feedback::before {
+        content: '✓';
+        font-size: 0.875rem;
+    }
 
-        .nav-links a {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--color-text-muted);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
+    .doc-content p {
+        margin-bottom: 1.5rem;
+        color: var(--color-text-muted);
+    }
 
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: var(--color-accent);
-        }
+    .doc-content p:first-of-type {
+        font-size: 1.125rem;
+        color: var(--color-text);
+    }
 
-        /* Hamburger Menu Button */
-        .hamburger-btn {
-            background: none;
-            border: 1px solid var(--color-border);
-            cursor: pointer;
-            padding: 0.5rem;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            transition: all 0.3s ease;
-            color: var(--color-text-muted);
-        }
+    .doc-content strong {
+        color: var(--color-text);
+        font-weight: 700;
+    }
 
-        .hamburger-btn:hover {
-            border-color: var(--color-text-dim);
-            color: var(--color-text);
-        }
+    .doc-content em {
+        font-style: italic;
+    }
 
-        .hamburger-btn svg {
-            width: 18px;
-            height: 18px;
-        }
+    .doc-content a {
+        color: var(--color-accent);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
 
-        .hamburger-btn .icon-hamburger,
-        .hamburger-btn .icon-close {
-            display: none;
-        }
+    .doc-content a:hover {
+        text-decoration: none;
+    }
 
-        .hamburger-btn .icon-hamburger {
-            display: block;
-        }
+    .doc-content ul,
+    .doc-content ol {
+        margin-bottom: 1.5rem;
+        padding-left: 1.5rem;
+        color: var(--color-text-muted);
+    }
 
-        .hamburger-btn.active .icon-hamburger {
-            display: none;
-        }
+    .doc-content li {
+        margin-bottom: 0.5rem;
+    }
 
-        .hamburger-btn.active .icon-close {
-            display: block;
-        }
+    .doc-content li > ul,
+    .doc-content li > ol {
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+    }
 
-        /* Mobile Menu */
-        .mobile-menu {
-            position: fixed;
-            top: 85px;
-            left: 0;
-            right: 0;
-            background: var(--color-bg-elevated);
-            border-bottom: 1px solid var(--color-border);
-            z-index: 99;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
+    .doc-content blockquote {
+        margin: 2rem 0;
+        padding: 1.5rem 2rem;
+        border-left: 3px solid var(--color-accent);
+        background: linear-gradient(to right, var(--color-glow), transparent);
+        font-style: italic;
+        font-size: 1.125rem;
+        color: var(--color-text);
+    }
 
-        .mobile-menu.active {
-            max-height: 300px;
-        }
+    .doc-content blockquote p {
+        margin-bottom: 0;
+        color: var(--color-text);
+    }
 
-        .mobile-menu-links {
-            list-style: none;
-            padding: 1rem 2rem;
-        }
+    .doc-content hr {
+        border: none;
+        border-top: 1px solid var(--color-border);
+        margin: 3rem 0;
+    }
 
-        .mobile-menu-links li {
-            border-bottom: 1px solid var(--color-border);
-        }
+    .doc-content code {
+        font-family: var(--font-mono);
+        font-size: 0.875em;
+        background: var(--color-code-bg);
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+    }
 
-        .mobile-menu-links li:last-child {
-            border-bottom: none;
-        }
+    .doc-content pre {
+        background: var(--color-code-bg);
+        border: 1px solid var(--color-border);
+        padding: 1.5rem;
+        overflow-x: auto;
+        margin: 1.5rem 0;
+        border-radius: 4px;
+    }
 
-        .mobile-menu-links a {
-            display: block;
-            padding: 1rem 0;
-            font-family: var(--font-mono);
-            font-size: 0.875rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--color-text);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
+    .doc-content pre code {
+        background: none;
+        padding: 0;
+        font-size: 0.8125rem;
+        line-height: 1.6;
+    }
 
-        .mobile-menu-links a:hover {
-            color: var(--color-accent);
-        }
+    .doc-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        font-size: 0.9375rem;
+    }
 
-        /* Theme Toggle */
-        .theme-btn {
-            background: none;
-            border: 1px solid var(--color-border);
-            cursor: pointer;
-            padding: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            transition: all 0.3s var(--ease-out);
-            color: var(--color-text-muted);
-        }
+    .doc-content th,
+    .doc-content td {
+        text-align: left;
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--color-border);
+    }
 
-        .theme-btn:hover {
-            border-color: var(--color-text-dim);
-            color: var(--color-text);
-        }
+    .doc-content th {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--color-text-dim);
+        font-weight: 400;
+    }
 
-        .theme-btn svg {
-            width: 18px;
-            height: 18px;
-        }
+    .doc-content td {
+        color: var(--color-text-muted);
+    }
 
-        .theme-btn .icon-sun,
-        .theme-btn .icon-moon {
-            display: none;
-        }
+    /* Dark theme code backgrounds */
+    [data-theme="dark"] {
+        --color-code-bg: #161616;
+    }
 
-        [data-theme="dark"] .theme-btn .icon-sun {
-            display: block;
-        }
+    /* Light theme code backgrounds */
+    [data-theme="light"] {
+        --color-code-bg: #e8e5e0;
+    }
 
-        [data-theme="light"] .theme-btn .icon-moon {
-            display: block;
-        }
-
-        /* Main Content */
+    /* Responsive */
+    @media (max-width: 600px) {
         main {
-            position: relative;
-            z-index: 1;
-            max-width: 750px;
-            margin: 0 auto;
-            padding: 8rem 2rem 4rem;
-            user-select: text;
-            -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
+            padding: 7rem 1.5rem 3rem;
         }
 
-        /* Document Header */
-        .doc-header {
-            text-align: center;
-            margin-bottom: 4rem;
-            padding-bottom: 3rem;
-            border-bottom: 1px solid var(--color-border);
-        }
-
-        .doc-label {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--color-text-dim);
-            margin-bottom: 1rem;
-            display: block;
-        }
-
-        .doc-header h1 {
-            font-size: clamp(2rem, 5vw, 3rem);
-            font-weight: 400;
-            line-height: 1.2;
-            margin-bottom: 1rem;
-        }
-
-        .doc-subtitle {
-            font-style: italic;
-            color: var(--color-text-muted);
-            font-size: 1.125rem;
-        }
-
-        /* Article Content — Markdown Styling */
-        .doc-content {
-            font-size: 1.0625rem;
-        }
-
-        .doc-content h1,
-        .doc-content h2,
-        .doc-content h3,
-        .doc-content h4,
-        .doc-content h5,
-        .doc-content h6 {
-            position: relative;
-            scroll-margin-top: 6rem;
-        }
-
-        .doc-content h1 {
-            font-size: 2rem;
-            font-weight: 400;
-            margin: 3rem 0 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--color-border);
-        }
-
-        .doc-content h2 {
-            font-size: 1.5rem;
-            font-weight: 400;
-            margin: 2.5rem 0 1rem;
-            color: var(--color-text);
-        }
-
-        .doc-content h3 {
-            font-size: 1.25rem;
-            font-weight: 400;
-            margin: 2rem 0 0.75rem;
-            color: var(--color-text);
-        }
-
-        .doc-content h4 {
-            font-size: 1rem;
-            font-weight: 700;
-            margin: 1.5rem 0 0.5rem;
-        }
-
-        /* Header link icon on hover */
         .doc-content h1::before,
         .doc-content h2::before,
         .doc-content h3::before,
         .doc-content h4::before,
         .doc-content h5::before,
         .doc-content h6::before {
-            content: '🔗';
-            position: absolute;
-            left: -1.5rem;
-            top: 0;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            font-size: 0.875em;
-            line-height: inherit;
-            text-decoration: none;
-            user-select: none;
+            left: -1.25rem;
+            font-size: 0.75em;
         }
 
-        .doc-content h1:hover::before,
-        .doc-content h2:hover::before,
-        .doc-content h3:hover::before,
-        .doc-content h4:hover::before,
-        .doc-content h5:hover::before,
-        .doc-content h6:hover::before {
-            opacity: 0.5;
-        }
-
-        .doc-content h1[id]:hover,
-        .doc-content h2[id]:hover,
-        .doc-content h3[id]:hover,
-        .doc-content h4[id]:hover,
-        .doc-content h5[id]:hover,
-        .doc-content h6[id]:hover {
-            padding-left: 0.5rem;
-            margin-left: -0.5rem;
-        }
-
-        /* Copy feedback notification */
         .header-copy-feedback {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-            margin-left: 0.75rem;
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: var(--color-text-muted);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            vertical-align: middle;
-        }
-
-        .header-copy-feedback.show {
-            opacity: 1;
-        }
-
-        .header-copy-feedback::before {
-            content: '✓';
-            font-size: 0.875rem;
-        }
-
-        @media (max-width: 600px) {
-            .doc-content h1::before,
-            .doc-content h2::before,
-            .doc-content h3::before,
-            .doc-content h4::before,
-            .doc-content h5::before,
-            .doc-content h6::before {
-                left: -1.25rem;
-                font-size: 0.75em;
-            }
-
-            .header-copy-feedback {
-                font-size: 0.6875rem;
-                margin-left: 0.5rem;
-            }
-        }
-
-        .doc-content p {
-            margin-bottom: 1.5rem;
-            color: var(--color-text-muted);
-        }
-
-        .doc-content p:first-of-type {
-            font-size: 1.125rem;
-            color: var(--color-text);
-        }
-
-        .doc-content strong {
-            color: var(--color-text);
-            font-weight: 700;
-        }
-
-        .doc-content em {
-            font-style: italic;
-        }
-
-        .doc-content a {
-            color: var(--color-accent);
-            text-decoration: underline;
-            text-underline-offset: 2px;
-        }
-
-        .doc-content a:hover {
-            text-decoration: none;
-        }
-
-        .doc-content ul,
-        .doc-content ol {
-            margin-bottom: 1.5rem;
-            padding-left: 1.5rem;
-            color: var(--color-text-muted);
-        }
-
-        .doc-content li {
-            margin-bottom: 0.5rem;
-        }
-
-        .doc-content li > ul,
-        .doc-content li > ol {
-            margin-top: 0.5rem;
-            margin-bottom: 0;
-        }
-
-        .doc-content blockquote {
-            margin: 2rem 0;
-            padding: 1.5rem 2rem;
-            border-left: 3px solid var(--color-accent);
-            background: linear-gradient(to right, var(--color-glow), transparent);
-            font-style: italic;
-            font-size: 1.125rem;
-            color: var(--color-text);
-        }
-
-        .doc-content blockquote p {
-            margin-bottom: 0;
-            color: var(--color-text);
-        }
-
-        .doc-content hr {
-            border: none;
-            border-top: 1px solid var(--color-border);
-            margin: 3rem 0;
-        }
-
-        .doc-content code {
-            font-family: var(--font-mono);
-            font-size: 0.875em;
-            background: var(--color-code-bg);
-            padding: 0.2em 0.4em;
-            border-radius: 3px;
-        }
-
-        .doc-content pre {
-            background: var(--color-code-bg);
-            border: 1px solid var(--color-border);
-            padding: 1.5rem;
-            overflow-x: auto;
-            margin: 1.5rem 0;
-            border-radius: 4px;
-        }
-
-        .doc-content pre code {
-            background: none;
-            padding: 0;
-            font-size: 0.8125rem;
-            line-height: 1.6;
-        }
-
-        .doc-content table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1.5rem 0;
-            font-size: 0.9375rem;
-        }
-
-        .doc-content th,
-        .doc-content td {
-            text-align: left;
-            padding: 0.75rem;
-            border-bottom: 1px solid var(--color-border);
-        }
-
-        .doc-content th {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--color-text-dim);
-            font-weight: 400;
-        }
-
-        .doc-content td {
-            color: var(--color-text-muted);
-        }
-
-        /* Footer */
-        footer {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 3rem 2rem;
-            border-top: 1px solid var(--color-border);
-            margin-top: 4rem;
-        }
-
-        .footer-inner {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .footer-logo {
-            width: 24px;
-            height: 24px;
-            opacity: 0.5;
-        }
-
-        .footer-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: var(--color-symbol-invert);
-        }
-
-        .footer-text {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: var(--color-text-dim);
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .footer-link {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: var(--color-text-muted);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .footer-link:hover {
-            color: var(--color-accent);
-        }
-
-        /* Donation Section */
-        .donation {
-            padding: 2rem 0;
-            text-align: center;
-        }
-
-        .donation-header {
-            margin-bottom: 1rem;
-        }
-
-        .donation-header h3 {
-            margin-bottom: 0.75rem;
-        }
-
-        .donation-message {
-            max-width: 500px;
-            margin: 0 auto 1.5rem;
-            color: var(--color-text-muted);
-            font-size: 0.9375rem;
-            line-height: 1.6;
-        }
-
-        .donation-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        .donation-qr {
-            width: 120px;
-            height: 120px;
-            border: 1px solid var(--color-border);
-            padding: 0.5rem;
-            background: var(--color-surface);
-            transition: border-color 0.3s ease;
-        }
-
-        .donation-qr img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-        }
-
-        .donation-address-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .donation-address-label {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--color-text-dim);
-        }
-
-        .donation-address-text {
-            font-family: var(--font-mono);
-            font-size: 0.875rem;
-            color: var(--color-text);
-            padding: 0.75rem 1rem;
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 4px;
-            cursor: pointer;
-            user-select: all;
-            transition: all 0.3s ease;
-            position: relative;
-            max-width: 100%;
-            word-break: break-all;
-            min-width: 280px;
-        }
-
-        .donation-address-text:hover {
-            border-color: var(--color-accent);
-            background: var(--color-bg-elevated);
-            transform: translateY(-2px);
-        }
-
-        .donation-address-text.copied {
-            border-color: var(--color-accent);
-            background: var(--color-glow);
-        }
-
-        .donation-copy-hint {
-            font-family: var(--font-mono);
             font-size: 0.6875rem;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--color-text-dim);
+            margin-left: 0.5rem;
         }
+    }
+</style>
 
-        /* Responsive */
-        @media (max-width: 600px) {
-            main {
-                padding: 7rem 1.5rem 3rem;
+<main>
+    <article class="doc-content">
+        <?= $content ?>
+    </article>
+</main>
+
+<script>
+    // Header link functionality
+    document.querySelectorAll('.doc-content h1[id], .doc-content h2[id], .doc-content h3[id], .doc-content h4[id], .doc-content h5[id], .doc-content h6[id]').forEach(header => {
+        header.style.cursor = 'pointer';
+        header.style.position = 'relative';
+
+        // Create feedback element
+        const feedback = document.createElement('span');
+        feedback.className = 'header-copy-feedback';
+        feedback.textContent = 'Link Copied';
+        header.appendChild(feedback);
+
+        header.addEventListener('click', function(e) {
+            // Don't trigger if clicking on a link inside the header
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
             }
 
-            .nav-links {
-                display: none;
-            }
+            const id = this.getAttribute('id');
+            if (id) {
+                const url = window.location.origin + window.location.pathname + '#' + id;
 
-            .nav-right {
-                gap: 0.75rem;
-            }
-
-            .hamburger-btn {
-                display: flex;
-                order: 2;
-            }
-
-            .theme-btn {
-                order: 1;
-            }
-
-            .footer-inner {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .donation-content {
-                flex-direction: column;
-            }
-
-            .donation-address-text {
-                min-width: auto;
-                font-size: 0.8125rem;
-            }
-        }
-
-        [data-theme="dark"] ::selection {
-            background: rgba(255, 255, 255, 0.2);
-            color: var(--color-accent);
-        }
-
-        [data-theme="light"] ::selection {
-            background: rgba(0, 0, 0, 0.4);
-            color: var(--color-accent);
-        }
-    </style>
-</head>
-
-<body>
-    <div class="bg-pattern"></div>
-
-    <nav>
-        <div class="nav-inner">
-            <a href="/" class="nav-logo">Bitcoin Echo</a>
-            <div class="nav-right">
-                <ul class="nav-links">
-                    <li><a href="/docs">Docs</a></li>
-                    <li><a href="/writings">Writings</a></li>
-                </ul>
-                <button class="hamburger-btn" id="hamburger-toggle" aria-label="Toggle menu">
-                    <svg class="icon-hamburger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="3" y1="12" x2="21" y2="12" />
-                        <line x1="3" y1="6" x2="21" y2="6" />
-                        <line x1="3" y1="18" x2="21" y2="18" />
-                    </svg>
-                    <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-                <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
-                <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5" />
-                    <line x1="12" y1="1" x2="12" y2="3" />
-                    <line x1="12" y1="21" x2="12" y2="23" />
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                    <line x1="1" y1="12" x2="3" y2="12" />
-                    <line x1="21" y1="12" x2="23" y2="12" />
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                </svg>
-                <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
-            </button>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobile-menu">
-        <ul class="mobile-menu-links">
-            <li><a href="/docs">Docs</a></li>
-            <li><a href="/writings">Writings</a></li>
-        </ul>
-    </div>
-
-    <main>
-        <article class="doc-content">
-            <?= $content ?>
-        </article>
-    </main>
-
-    <section class="donation" id="donation">
-        <div style="max-width: 900px; margin: 0 auto; padding: 0 2rem;">
-            <div class="donation-header">
-                <h3>Support the Mission</h3>
-            </div>
-            <p class="donation-message">
-                Support Bitcoin's permanence through a frozen reference&nbsp;implementation.
-            </p>
-            <div class="donation-content">
-                <div class="donation-qr">
-                    <img src="/bitcoin-echo-btc-qr.png" alt="Bitcoin QR Code">
-                </div>
-                <div class="donation-address-wrapper">
-                    <div class="donation-address-label">Bitcoin Address</div>
-                    <div class="donation-address-text" id="btc-address" data-address="bc1q6lxs3kmjwya43p5l278fydcagxaawaateq7gse">
-                        bc1q6lxs3kmjwya43p5l278fydcagxaawaateq7gse
-                    </div>
-                    <div class="donation-copy-hint">Click to copy</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <div class="footer-inner">
-            <div class="footer-brand">
-                <div class="footer-logo">
-                    <img src="/bitcoin-echo-symbol.jpg" alt="Bitcoin Echo">
-                </div>
-                <span class="footer-text">&copy; <span id="year"></span> Bitcoin Echo. The last implementation.</span>
-            </div>
-            <div class="footer-links">
-                <a href="mailto:echo@bitcoinecho.org" class="footer-link">echo@bitcoinecho.org</a>
-                <a href="https://github.com/bitcoinecho" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
-                <a href="https://x.com/bitcoinechoorg" target="_blank" rel="noopener noreferrer" class="footer-link">𝕏</a>
-                <a href="/funding" class="footer-link" style="margin-left: 1rem;">Funding</a>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // Theme toggle
-        const themeToggle = document.getElementById('theme-toggle');
-        const hamburgerToggle = document.getElementById('hamburger-toggle');
-        const mobileMenu = document.getElementById('mobile-menu');
-        const html = document.documentElement;
-
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        });
-
-        // Mobile menu toggle
-        hamburgerToggle.addEventListener('click', () => {
-            hamburgerToggle.classList.toggle('active');
-            mobileMenu.classList.toggle('active');
-        });
-
-        // Close mobile menu when clicking a link
-        const mobileMenuLinks = mobileMenu.querySelectorAll('a');
-        mobileMenuLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                hamburgerToggle.classList.remove('active');
-                mobileMenu.classList.remove('active');
-            });
-        });
-
-        // Evergreen year
-        document.getElementById('year').textContent = new Date().getFullYear();
-
-        // Header link functionality
-        document.querySelectorAll('.doc-content h1[id], .doc-content h2[id], .doc-content h3[id], .doc-content h4[id], .doc-content h5[id], .doc-content h6[id]').forEach(header => {
-            header.style.cursor = 'pointer';
-            header.style.position = 'relative';
-
-            // Create feedback element
-            const feedback = document.createElement('span');
-            feedback.className = 'header-copy-feedback';
-            feedback.textContent = 'Link Copied';
-            header.appendChild(feedback);
-
-            header.addEventListener('click', function(e) {
-                // Don't trigger if clicking on a link inside the header
-                if (e.target.tagName === 'A' || e.target.closest('a')) {
-                    return;
-                }
-
-                const id = this.getAttribute('id');
-                if (id) {
-                    const url = window.location.origin + window.location.pathname + '#' + id;
-
-                    // Copy to clipboard
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        navigator.clipboard.writeText(url).then(() => {
-                            // Show feedback
-                            const feedbackEl = this.querySelector('.header-copy-feedback');
-                            if (feedbackEl) {
-                                feedbackEl.classList.add('show');
-                                setTimeout(() => {
-                                    feedbackEl.classList.remove('show');
-                                }, 1200);
-                            }
-                        }).catch(() => {
-                            // Fallback: navigate to the anchor
-                            window.location.hash = id;
-                        });
-                    } else {
-                        // Fallback for browsers without clipboard API
+                // Copy to clipboard
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(() => {
+                        // Show feedback
+                        const feedbackEl = this.querySelector('.header-copy-feedback');
+                        if (feedbackEl) {
+                            feedbackEl.classList.add('show');
+                            setTimeout(() => {
+                                feedbackEl.classList.remove('show');
+                            }, 1200);
+                        }
+                    }).catch(() => {
+                        // Fallback: navigate to the anchor
                         window.location.hash = id;
-                    }
+                    });
+                } else {
+                    // Fallback for browsers without clipboard API
+                    window.location.hash = id;
                 }
-            });
+            }
         });
+    });
+</script>
 
-        // BTC Address Copy Functionality
-        const btcAddress = document.getElementById('btc-address');
-        if (btcAddress) {
-            btcAddress.addEventListener('click', async function() {
-                const address = this.getAttribute('data-address');
-
-                try {
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        await navigator.clipboard.writeText(address);
-                        this.classList.add('copied');
-                        const originalText = this.textContent;
-                        this.textContent = 'Copied!';
-
-                        setTimeout(() => {
-                            this.classList.remove('copied');
-                            this.textContent = originalText;
-                        }, 2000);
-                    } else {
-                        // Fallback for older browsers
-                        const textArea = document.createElement('textarea');
-                        textArea.value = address;
-                        textArea.style.position = 'fixed';
-                        textArea.style.opacity = '0';
-                        document.body.appendChild(textArea);
-                        textArea.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(textArea);
-
-                        this.classList.add('copied');
-                        const originalText = this.textContent;
-                        this.textContent = 'Copied!';
-
-                        setTimeout(() => {
-                            this.classList.remove('copied');
-                            this.textContent = originalText;
-                        }, 2000);
-                    }
-                } catch (err) {
-                    console.error('Failed to copy address:', err);
-                }
-            });
-        }
-    </script>
-</body>
-
-</html>
+<?php
+// Include footer
+include __DIR__ . '/footer.php';
+?>
