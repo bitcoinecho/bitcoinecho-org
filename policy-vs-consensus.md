@@ -197,6 +197,87 @@ This isn't compromise. This isn't "trying to please everyone." This is **correct
 
 ---
 
+## Show, Don't Tell: Our Implementation
+
+Bitcoin Echo's configuration structure demonstrates architectural separation in code, not rhetoric.
+
+### Consensus Layer (Frozen, Never Changes)
+
+[`echo_consensus.h`](https://github.com/bitcoinecho/bitcoin-echo/blob/main/include/echo_consensus.h) — The consensus rules that all nodes must agree on:
+
+```c
+/* Block subsidy halving interval (blocks) */
+#define CONSENSUS_HALVING_INTERVAL 210000
+
+/* Maximum block weight (weight units, post-SegWit) */
+#define CONSENSUS_MAX_BLOCK_WEIGHT 4000000
+
+/* Maximum script size (bytes) */
+#define CONSENSUS_MAX_SCRIPT_SIZE 10000
+
+/* Coinbase maturity (blocks before spendable) */
+#define CONSENSUS_COINBASE_MATURITY 100
+```
+
+**These values define what makes a block valid. They are FROZEN and identical for all Bitcoin Echo nodes.**
+
+### Policy Layer (Configurable, Operator-Controlled)
+
+[`echo_policy.h`](https://github.com/bitcoinecho/bitcoin-echo/blob/main/include/echo_policy.h) — The relay and mempool rules each operator chooses:
+
+```c
+/* Data carrier (OP_RETURN) policy.
+ * Historical values: 40 bytes (2013), 80 bytes (2014-2024),
+ * 100000 bytes (effectively unlimited, Core v30)
+ *
+ * Your choice reflects belief about Bitcoin's purpose:
+ * - Low values: Prioritize monetary transactions
+ * - High values: Treat all consensus-valid uses as legitimate
+ */
+#define POLICY_MAX_DATACARRIER_BYTES 80
+
+/* Witness data filtering.
+ * 0 = Accept all consensus-valid witness data
+ * 1 = Filter transactions with arbitrary data patterns
+ */
+#define POLICY_FILTER_WITNESS_DATA 0
+
+/* Bare multisig relay.
+ * 0 = Reject bare multisig (reduce UTXO bloat)
+ * 1 = Accept bare multisig (maximum compatibility)
+ */
+#define POLICY_PERMIT_BARE_MULTISIG 1
+```
+
+**These values control relay behavior. They are CONFIGURABLE at compile time. Nodes with different policies still agree on valid blocks.**
+
+### Platform Layer (Pragmatic, May Evolve)
+
+[`echo_platform_config.h`](https://github.com/bitcoinecho/bitcoin-echo/blob/main/include/echo_platform_config.h) — Operational settings:
+
+```c
+/* Maximum outbound connections */
+#define PLATFORM_MAX_OUTBOUND_PEERS 8
+
+/* Connection timeout (milliseconds) */
+#define PLATFORM_CONNECT_TIMEOUT_MS 5000
+
+/* Mempool size limit (megabytes) */
+#define POLICY_MEMPOOL_MAX_SIZE_MB 300
+```
+
+**These values affect performance and resource usage, not consensus or policy philosophy.**
+
+### Why This Matters
+
+Bitcoin Core and Knots mix these concerns. Their configuration uses runtime flags like `-datacarriersize=100000` that appear neutral but encode philosophical choices.
+
+Bitcoin Echo makes the choice **explicit and visible in the source code**. An operator compiling Bitcoin Echo must consciously set `POLICY_MAX_DATACARRIER_BYTES` to their preferred value. There is no hidden default.
+
+**This is architectural honesty.** The code structure itself enforces the separation we're advocating.
+
+---
+
 ## Conclusion
 
 The Bitcoin Core v30 / Knots controversy is not about consensus. It's about values.
