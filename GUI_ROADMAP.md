@@ -2,7 +2,7 @@
 
 **A Living Document for GUI Development**
 
-*Last Updated: December 17, 2025*
+*Last Updated: December 18, 2025*
 
 ---
 
@@ -678,6 +678,7 @@ Each session is designed to be completable in a single focused chat session.
 | Session | Status | Notes |
 |---------|--------|-------|
 | 2.1 First-Run Onboarding | ✅ Complete | Dec 2025 — Welcome screen, Observe/Validate choice, ValidateInfo step, localStorage persistence |
+| 2.1+ Three-Option Onboarding | ✅ Complete | Dec 2025 — Enhanced to Observe / Validate Lite (~10 GB) / Validate Archival (~600 GB), storage estimates, CLI command display |
 | 2.2 Sync View — The Journey | Not Started | |
 | 2.3 Historical Milestones | Not Started | |
 | 2.4 Resume & Completion | Not Started | |
@@ -726,7 +727,7 @@ NODE                                  GUI
 
 9.6.0 Storage Foundation ✅  ──────►   1.3 Connection Polish ✅
 9.6.1 Block Pipeline ✅      ──────►   2.1 Onboarding Flow ✅
-9.6.2 Pruning Support        ──────►   2.1+ Three-Option Onboarding
+9.6.2 Pruning Support ✅     ──────►   2.1+ Three-Option Onboarding ✅
 9.6.3 Transaction Pipeline   ──────►   2.2 Sync View
 9.6.4 Regtest Mining         ──────►   2.3 Milestones
 9.6.5 Regtest & Pruning      ──────►   2.4 Resume & Completion
@@ -746,7 +747,7 @@ Phase 12: Completion        ──────►   Phase 6: Polish & Release
 |-------------|------------------|--------|
 | Observer Mode | Session 9.5 (`--observe`, observer RPCs) | ✅ Complete |
 | Two-Option Onboarding | Session 9.6.1 (block pipeline) | ✅ Complete |
-| Three-Option Onboarding | Session 9.6.2 (`--prune` flag, pruned storage) | Pending |
+| Three-Option Onboarding | Session 9.6.2 (`--prune` flag, pruned storage) | ✅ Complete |
 | Sync Progress | Session 9.6.3+ (`getblockchaininfo` with sync data) | Pending |
 | Block Explorer | Session 9.6.6+ (`getblock`, validated blocks) | Pending |
 | Transaction View | Session 9.6.3+ (`getrawtransaction` with validation) | Pending |
