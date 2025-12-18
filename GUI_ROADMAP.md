@@ -190,7 +190,7 @@ The GUI supports two modes, detected automatically from node RPC:
 ### Phase 0: Project Foundation ✅
 *Establish the development environment*
 
-### Phase 1: Observer Mode ✅ (1.1, 1.2) / 🎯 (1.3)
+### Phase 1: Observer Mode ✅
 *Live network observation with instant gratification*
 
 ### Phase 2: Onboarding & Sync Experience
@@ -663,7 +663,7 @@ Each session is designed to be completable in a single focused chat session.
 |---------|--------|-------|
 | 1.1 Minimal RPC Client | ✅ Complete | Dec 2025 — JSON-RPC client, typed observer interfaces, connection store with health checks |
 | 1.2 Live Observer View | ✅ Complete | Dec 2025 — Live block/tx feeds, mempool.space integration for height/hashrate, network stats, stable rendering |
-| 1.3 Connection Settings | Not Started | |
+| 1.3 Connection Settings | ✅ Complete | Dec 2025 — ConnectionSettings modal, ConnectionStatus component, ObserverHelp tooltip, user-friendly error messages, CORS guidance |
 
 ### Phase 2: Onboarding & Sync Experience
 | Session | Status | Notes |
