@@ -117,6 +117,73 @@ The GUI combines two data sources for a complete picture:
 
 ## Architecture
 
+### Architecture Rework (Session 2.1R)
+
+**Status:** Pending — Required before continuing Phase 2
+
+**Problem Identified:**
+The current implementation has a fundamental UX issue: the Welcome/Onboarding flow gives users the impression they're configuring the node when they're actually just telling the GUI what they *intend* to do. This creates two sources of truth:
+
+1. **GUI's `selectedMode`** — What user clicked during onboarding (stored in localStorage)
+2. **Node's actual mode** — Based on CLI flags passed at startup (`--observe`, `--prune`, etc.)
+
+These can easily get out of sync, causing confusion.
+
+**Solution: Node as Sole Source of Truth**
+
+The GUI should *query the node* and adapt accordingly. No user selection needed.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    NEW ARCHITECTURE                              │
+│                                                                  │
+│   On Startup:                                                    │
+│   ┌───────────────────────────────────────────────────────────┐ │
+│   │ GUI calls getobserverstats → { mode: "observer" | "full" }│ │
+│   │ GUI calls getblockchaininfo → { pruned: boolean, ... }   │ │
+│   └───────────────────────────────────────────────────────────┘ │
+│                            ↓                                     │
+│   ┌───────────────────────────────────────────────────────────┐ │
+│   │ nodeMode store = "observer" | "full-pruned" | "full-arch" │ │
+│   └───────────────────────────────────────────────────────────┘ │
+│                            ↓                                     │
+│   ┌───────────────────────────────────────────────────────────┐ │
+│   │ UI adapts:                                                 │ │
+│   │ • Show/hide Sync page based on actual mode                │ │
+│   │ • Welcome content reflects actual node state              │ │
+│   │ • No false agency — user sees what node IS doing          │ │
+│   └───────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Welcome Flow Becomes Educational Guide**
+
+Instead of "Choose your path" (false config), the Welcome becomes:
+
+- **First-run detection** — Still useful for showing intro content
+- **Adaptive content** — "Your node is running in [detected mode]. Here's what that means..."
+- **Mode explanation** — What each mode does, what to expect
+- **How to change** — "To switch modes, restart with different flags: `--observe`, `--prune=1000`, etc."
+- **Help icon (?) in sidebar** — Re-shows guide anytime (not settings gear ⚙)
+
+**Tasks for Session 2.1R (Rework):**
+
+1. Create `nodeMode` store that queries RPC on startup
+2. Simplify `onboarding` store to just `hasSeenGuide` + `showGuide`
+3. Rewrite Welcome component as educational overlay (not config)
+4. Update Sidebar: `?` help icon instead of `⚙` settings gear
+5. Update page visibility to use `nodeMode` store
+6. Remove `selectedMode` and related localStorage
+
+**Benefits:**
+- Single source of truth (the node)
+- No mode mismatch possible
+- Honest UX — GUI reflects reality, doesn't pretend to control it
+- Works for power users (just start node, GUI adapts)
+- Works for novices (guide explains what they're seeing)
+
+---
+
 ### Operating Modes
 
 The GUI supports three modes, detected automatically from node RPC:
@@ -151,9 +218,10 @@ The GUI supports three modes, detected automatically from node RPC:
 │                                                                  │
 │  ● SYNC / STATUS ◄─────────► During IBD: Journey view           │
 │    (home)                    After sync: Node health dashboard  │
+│                              (hidden in observer mode)          │
 │                                                                  │
 │  ○ OBSERVER ◄──────────────► Live network pulse                 │
-│                              (available during sync too)        │
+│                              (available in ALL modes)           │
 │                                                                  │
 │  ○ CHAIN ◄─────────────────► Validated blocks & transactions    │
 │                              (grows as sync progresses)         │
@@ -166,8 +234,11 @@ The GUI supports three modes, detected automatically from node RPC:
 │  ─────────                                                      │
 │  ○ CONSOLE ◄───────────────► Raw RPC                            │
 │  ○ LOGS ◄──────────────────► Log stream                         │
-│  ⚙ SETTINGS                                                     │
+│  ? HELP ◄──────────────────► Re-show welcome guide              │
 └─────────────────────────────────────────────────────────────────┘
+
+Note: Page visibility is determined by querying the node's actual mode,
+not by user selection. The GUI adapts to the node, not vice versa.
 ```
 
 ---
@@ -679,10 +750,11 @@ Each session is designed to be completable in a single focused chat session.
 |---------|--------|-------|
 | 2.1 First-Run Onboarding | ✅ Complete | Dec 2025 — Welcome screen, Observe/Validate choice, ValidateInfo step, localStorage persistence |
 | 2.1+ Three-Option Onboarding | ✅ Complete | Dec 2025 — Enhanced to Observe / Validate Lite (~10 GB) / Validate Archival (~600 GB), storage estimates, CLI command display |
-| 2.2 Sync View — The Journey | ✅ Complete | Dec 2025 — Dual-timeline visualization, progress bar 2009→present, validation stats, performance metrics (blk/s, ETA), session tracking, storage info, currently validating indicator |
-| 2.3 Historical Milestones | Not Started | |
-| 2.4 Resume & Completion | Not Started | |
-| 2.5 Mode Detection | Not Started | |
+| 2.2 Sync View — The Journey | ✅ Complete | Dec 2025 — Dual-timeline visualization, progress bar 2009→present, validation stats, performance metrics (blk/s, ETA), session tracking, storage info |
+| **2.1R Architecture Rework** | **← NEXT** | Rearchitect: node as source of truth, welcome becomes guide, remove false config UX |
+| 2.3 Historical Milestones | Blocked | Awaiting 2.1R |
+| 2.4 Resume & Completion | Blocked | Awaiting 2.1R |
+| 2.5 Mode Detection | Absorbed | Merged into 2.1R — mode detection is now the foundation |
 
 ### Phase 3: Chain Explorer
 | Session | Status | Notes |
@@ -728,7 +800,8 @@ NODE                                  GUI
 9.6.0 Storage Foundation ✅  ──────►   1.3 Connection Polish ✅
 9.6.1 Block Pipeline ✅      ──────►   2.1 Onboarding Flow ✅
 9.6.2 Pruning Support ✅     ──────►   2.1+ Three-Option Onboarding ✅
-9.6.3 Transaction Pipeline   ──────►   2.2 Sync View
+9.6.3 Transaction Pipeline ✅ ─────►   2.2 Sync View ✅
+                              ─────►   2.1R Architecture Rework ← NOW
 9.6.4 Regtest Mining         ──────►   2.3 Milestones
 9.6.5 Regtest & Pruning      ──────►   2.4 Resume & Completion
 9.6.6 Headers-First Sync     ──────►   2.5 Mode Detection
