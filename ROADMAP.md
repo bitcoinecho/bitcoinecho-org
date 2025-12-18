@@ -2,7 +2,7 @@
 
 **A Living Document for Development Sessions**
 
-*Last Updated: December 17, 2025*
+*Last Updated: December 18, 2025*
 
 ---
 
@@ -1646,7 +1646,7 @@ Use this section to track completion status. Update after each session.
 | 9.6.1 Block Pipeline | Complete | Dec 2025 — Sync manager initialization with block pipeline callbacks (node_init_sync), consensus validation wired to incoming blocks via sync_cb_validate_and_apply_block callback, invalid block tracking ring buffer (1000 blocks) to avoid re-download, block relay after validation (INV broadcast to peers), graceful validation failure handling with detailed logging (error type, failing tx/input index), public API for invalid block checks (node_is_block_invalid, node_get_invalid_block_count, node_process_received_block), 8 new block pipeline tests, 1031/1031 tests pass |
 | 9.6.2 Pruning Support | Complete | Dec 2025 — --prune=<MB> CLI flag (min 550 MB for reorg safety), PRUNE_TARGET_MIN_MB constant, BLOCK_STATUS_PRUNED flag, block_index_db_mark_pruned/get_pruned_height/is_pruned functions, block_storage_delete_file/file_exists/get_file_size/get_total_size/get_current_file/get_lowest_file functions, node_is_pruning_enabled/get_prune_target/get_pruned_height/is_block_pruned/prune_blocks/maybe_prune/get_block_storage_size functions, service bits updated (no NODE_NETWORK when pruned), NOTFOUND sent for pruned block requests, getblockchaininfo reports pruned/pruneheight/prune_target_size, pruneblockchain RPC for manual pruning, 12 pruning unit tests, 1043/1043 tests pass |
 | 9.6.3 Transaction Pipeline | Complete | Dec 2025 — Mempool callbacks wired in node_init_mempool (get_utxo, get_height, get_median_time, announce_tx), UTXO lookup chain (database first, mempool for unconfirmed ancestors), median time past calculation from last 11 blocks, transaction announcement via INV to all ready peers, node_accept_transaction helper for P2P and RPC, full UTXO validation in sendrawtransaction (syntax check, UTXO lookup, script execution, fee rate check), MSG_TX handler uses node_accept_transaction with validation, 10 new transaction pipeline tests, 1053/1053 tests pass |
-| 9.6.4 Regtest Mining | Not Started | getblocktemplate/submitblock for testing |
+| 9.6.4 Regtest Mining | Complete | Dec 2025 — mining.h/c, coinbase construction, BIP-34 height encoding, regtest genesis block (timestamp 1296688602, nonce 2), REGTEST_POWLIMIT_BITS (0x207fffff), getblocktemplate RPC with proper difficulty, mining_find_nonce(), Python mining script (scripts/regtest_miner.py), 16/16 tests pass, 1071/1071 total |
 | 9.6.5 Regtest & Pruning Integration | Not Started | Full workflow proof in sandbox (archival + pruned modes) |
 | 9.6.6 Headers-First Sync | Not Started | Sync manager + consensus integration (with pruning) |
 | 9.6.7 Testnet & Mainnet Validation | Not Started | Real block validation on testnet/mainnet |
