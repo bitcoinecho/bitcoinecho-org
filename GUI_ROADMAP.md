@@ -2,14 +2,14 @@
 
 **A Living Document for GUI Development**
 
-*Last Updated: December 13, 2025 (Session 1.1 complete)*
+*Last Updated: December 17, 2025*
 
 ---
 
 ## Quick Orientation
 
 **What is Bitcoin Echo GUI?**
-A beautiful, standalone browser-based interface to a running Bitcoin Echo node. It communicates exclusively via JSON-RPC, making it completely decoupled from the frozen C implementation.
+A beautiful, standalone browser-based interface to a running Bitcoin Echo node. It communicates via JSON-RPC with the local node and uses mempool.space API for live network context. The GUI transforms node operation from a technical exercise into an engaging experience.
 
 **Key distinction from bitcoin-echo:**
 The GUI is *not* ossified. It may evolve, receive updates, and improve independently of the frozen core. This is intentional—the GUI is a window into the artifact, not part of the artifact itself.
@@ -23,69 +23,144 @@ bitcoinecho-gui/          ← This project (can evolve)
 
 ---
 
-## The Sequencing Problem
+## Design Philosophy
 
-### Current State of bitcoin-echo (Phase 9 Complete)
+### Core Principle: Progressive Disclosure
 
-The node has these components implemented:
-- Full consensus engine (block/tx validation, chain selection)
-- Storage layer (SQLite UTXO/index databases, block files)
-- Protocol layer (P2P messages, peer management, mempool)
-- Application layer (node lifecycle, event loop, RPC server, logging)
+The GUI serves everyone from child novices to seasoned veterans, from ultra-minimalists to show-me-everything enthusiasts. This is achieved through **progressive disclosure**:
 
-**What the RPC can do today:**
-- `getblockchaininfo` — Returns chain state (but no blocks synced yet)
-- `getblock` — Fetch block by hash (once blocks exist)
-- `getblockhash` — Fetch hash by height (once blocks exist)
-- `getrawtransaction` — Fetch transaction (mempool or confirmed)
-- `sendrawtransaction` — Submit transaction to mempool
-- `getblocktemplate` — Mining work (Phase 10 stub)
-- `submitblock` — Submit mined block (Phase 10 stub)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    PROGRESSIVE DISCLOSURE                        │
+│                                                                  │
+│  Surface: Clean, essential, beautiful                           │
+│      ↓                                                          │
+│  Depth 1: Expanded detail on demand                             │
+│      ↓                                                          │
+│  Depth 2: Full technical exposure for power users               │
+│      ↓                                                          │
+│  Depth 3: Raw data, developer tools, kitchen sink               │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-**What's NOT functional yet:**
-- No actual network sync (can't connect to mainnet peers and IBD)
-- Mining interface is stub (Phase 10 not started)
-- No chain sync test verified (Phase 11)
+### Guiding Principles
 
-### The Horse and Cart
+1. **Window, Not Wall**
+   The GUI is a view into the node, not a barrier. Show raw data alongside formatted data. Let users see the underlying JSON-RPC. Don't hide complexity; make it navigable.
 
-The GUI development can proceed intelligently by:
+2. **Offline-First Thinking**
+   The GUI should gracefully handle:
+   - Node not running
+   - Node still syncing
+   - Node disconnected mid-session
+   Always show what state we're in. Never leave users guessing.
 
-1. **Building against the RPC interface** (stable API contract)
-2. **Using mock data** during early phases
-3. **Testing against regtest** once the node can mine locally
-4. **Graduating to testnet/mainnet** as node capabilities mature
+3. **The Sync is the Journey**
+   Initial Block Download is not "waiting for software to work"—it's validating the entire history of Bitcoin. Make this feel remarkable through education, milestones, and engagement.
 
-This means GUI work can happen *in parallel* with Phases 10-11 of the node.
+4. **Developer-Friendly**
+   The RPC console is not a power-user afterthought—it's a first-class feature. Many users of Bitcoin Echo will be developers studying the protocol.
+
+5. **Timeless Aesthetics**
+   Avoid trendy design. Choose clean, minimal, functional. The GUI should look as appropriate in 2035 as it does today.
+
+6. **Performance Budget**
+   - Initial load: < 500KB JS
+   - Time to interactive: < 2 seconds
+   - No runtime CSS-in-JS (Tailwind compiles away)
+
+---
+
+## Data Architecture
+
+The GUI combines two data sources for a complete picture:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      DATA ARCHITECTURE                          │
+│                                                                 │
+│   mempool.space API                    Bitcoin Echo Node RPC    │
+│   ─────────────────                    ─────────────────────    │
+│   • Current block height               • Validated block height │
+│   • Network hashrate                   • Our chain work         │
+│   • Live mempool                       • Our mempool (if synced)│
+│   • Fee estimates                      • UTXO set size          │
+│   • Recent blocks (announced)          • Blocks we've validated │
+│   • Difficulty adjustment              • Sync progress          │
+│                                                                 │
+│                         ↓                                       │
+│                   ┌─────────────┐                               │
+│                   │     GUI     │                               │
+│                   │   merges    │                               │
+│                   │    both     │                               │
+│                   └─────────────┘                               │
+│                         ↓                                       │
+│              "Network is at 874,571                             │
+│               You've validated to 367,500                       │
+│               507,071 blocks to go"                             │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### mempool.space API Endpoints
+
+| Data | Endpoint | Use in GUI |
+|------|----------|------------|
+| Block height | `/api/blocks/tip/height` | Show network tip vs. our tip |
+| Block hash | `/api/blocks/tip/hash` | Verify we're on same chain |
+| Hashrate | `/api/v1/mining/hashrate/3d` | Network security indicator |
+| Mempool size | `/api/mempool` | Show what's waiting |
+| Fee estimates | `/api/v1/fees/recommended` | Current fee environment |
+| Recent blocks | `/api/v1/blocks` | Live block feed |
+| Difficulty | `/api/v1/difficulty-adjustment` | Network difficulty info |
 
 ---
 
 ## Architecture
 
+### Operating Modes
+
+The GUI supports two modes, detected automatically from node RPC:
+
+**Observer Mode** — *"Watch Bitcoin Breathe"*
+- Node running with `--observe` flag
+- Live network pulse visualization
+- Educational focus
+- No validation, no storage
+- Instant gratification
+
+**Full Node Mode** — *"Validate Everything"*
+- Node running normally (default)
+- Chain status, sync progress
+- UTXO set statistics
+- Mempool view
+- Full block explorer
+
+### View Structure
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    bitcoinecho-gui                          │
-│            (SvelteKit SPA, can evolve)                      │
-│                                                             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
-│  │  Dashboard  │  │  Explorer   │  │   RPC Console       │ │
-│  │  (sync,     │  │  (blocks,   │  │   (raw JSON-RPC)    │ │
-│  │   peers)    │  │   txs)      │  │                     │ │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘ │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │              RPC Client Layer                         │  │
-│  │    (typed fetch wrapper, error handling, retries)    │  │
-│  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                           │
-                           │ HTTP POST (JSON-RPC 1.0)
-                           │ localhost:8332
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      bitcoin-echo                           │
-│                   (Frozen C daemon)                         │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  SIDEBAR                    MAIN CONTENT                        │
+│  ─────────                  ────────────                        │
+│                                                                  │
+│  ● SYNC / STATUS ◄─────────► During IBD: Journey view           │
+│    (home)                    After sync: Node health dashboard  │
+│                                                                  │
+│  ○ OBSERVER ◄──────────────► Live network pulse                 │
+│                              (available during sync too)        │
+│                                                                  │
+│  ○ CHAIN ◄─────────────────► Validated blocks & transactions    │
+│                              (grows as sync progresses)         │
+│                                                                  │
+│  ○ MEMPOOL ◄───────────────► Unconfirmed transactions           │
+│                              (only after sync complete)         │
+│                                                                  │
+│  ○ NETWORK ◄───────────────► Peers, bandwidth, connectivity     │
+│                                                                  │
+│  ─────────                                                      │
+│  ○ CONSOLE ◄───────────────► Raw RPC                            │
+│  ○ LOGS ◄──────────────────► Log stream                         │
+│  ⚙ SETTINGS                                                     │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -100,7 +175,6 @@ This means GUI work can happen *in parallel* with Phases 10-11 of the node.
 | Build | **Vite** (bundled with SvelteKit) | Fast, modern, minimal config |
 | Language | **TypeScript** | Type safety for RPC contracts |
 | Styling | **Tailwind CSS** | Utility-first, consistent design system |
-| Charts | Lightweight charting lib (TBD) | Sync progress, difficulty, etc. |
 | State | **Svelte stores** | Built-in reactivity, no extra dependencies |
 | Testing | **Vitest + Testing Library** | Aligned with Vite ecosystem |
 
@@ -108,12 +182,6 @@ This means GUI work can happen *in parallel* with Phases 10-11 of the node.
 - **Smallest bundle** — Framework compiles away, ~2KB vs 33-40KB
 - **Simplest code** — No `.value`, no `useState`, just `let x = 5`
 - **Philosophical alignment** — "Compile once, disappear" mirrors "build once, stop"
-- **Sufficient ecosystem** — We need very little for this focused app
-
-**Explicitly avoiding:**
-- Heavy frameworks (Next.js, Nuxt) — we're a simple SPA
-- Complex state management (Redux, Pinia) — overkill for this scope
-- Server-side rendering — pure client-side is sufficient
 
 ---
 
@@ -122,26 +190,23 @@ This means GUI work can happen *in parallel* with Phases 10-11 of the node.
 ### Phase 0: Project Foundation ✅
 *Establish the development environment*
 
-### Phase 1: Live Observer (The "Wow Moment") 🎯
-*Connect to a real Bitcoin node and watch live network traffic*
+### Phase 1: Observer Mode ✅ (1.1, 1.2) / 🎯 (1.3)
+*Live network observation with instant gratification*
 
-### Phase 2: Full RPC Client & Mock Mode
-*Complete RPC coverage and development tooling*
+### Phase 2: Onboarding & Sync Experience
+*Transform IBD from waiting into a journey*
 
-### Phase 3: Dashboard View
-*Chain status for full node mode*
+### Phase 3: Chain Explorer
+*Navigate the validated blockchain*
 
-### Phase 4: Block Explorer
-*Navigate the chain*
+### Phase 4: Network & Mempool
+*Peer connectivity and unconfirmed transactions*
 
-### Phase 5: Transaction View
-*Decode and display transactions*
+### Phase 5: Power User Tools
+*RPC console, logs, developer mode*
 
-### Phase 6: RPC Console
-*Power user interface*
-
-### Phase 7: Polish & Integration Testing
-*Ready for community testing*
+### Phase 6: Polish & Release
+*Ready for the world*
 
 ---
 
@@ -153,7 +218,7 @@ Each session is designed to be completable in a single focused chat session.
 
 ### Phase 0: Project Foundation
 
-#### Session 0.1: Repository Setup
+#### Session 0.1: Repository Setup ✅
 **Objective:** Initialize the GUI project with proper structure
 
 **Tasks:**
@@ -161,43 +226,19 @@ Each session is designed to be completable in a single focused chat session.
 - Configure for SPA mode (static adapter, no SSR)
 - Configure ESLint + Prettier
 - Set up Tailwind CSS
-- Create directory structure:
-  ```
-  bitcoinecho-gui/
-  ├── src/
-  │   ├── lib/
-  │   │   ├── components/  # Reusable UI components
-  │   │   ├── rpc/         # RPC client
-  │   │   └── stores/      # Svelte stores
-  │   ├── routes/          # SvelteKit file-based routing
-  │   │   ├── +layout.svelte
-  │   │   └── +page.svelte
-  │   └── app.html
-  ├── static/
-  ├── package.json
-  ├── svelte.config.js
-  ├── tsconfig.json
-  ├── vite.config.ts
-  ├── tailwind.config.js
-  └── README.md
-  ```
+- Create directory structure
 - Verify `npm run dev` works
 
 **Deliverables:** Working development environment
 
 ---
 
-#### Session 0.2: Design System Foundation
+#### Session 0.2: Design System Foundation ✅
 **Objective:** Establish visual identity and base components
 
 **Tasks:**
 - Define color palette (inspired by bitcoinecho.org landing page)
-- Create base components:
-  - `Button` (primary, secondary, ghost variants)
-  - `Card` (container for content blocks)
-  - `Badge` (status indicators)
-  - `Spinner` (loading state)
-  - `Hash` (monospace, truncatable hash display)
+- Create base components: Button, Card, Badge, Spinner, Hash
 - Set up dark mode support
 - Create app shell (header, sidebar, main content area)
 
@@ -205,100 +246,36 @@ Each session is designed to be completable in a single focused chat session.
 
 ---
 
-### Phase 1: Live Observer (The "Wow Moment")
+### Phase 1: Observer Mode
 
-**Philosophy:** The first real feature should be the most impressive. Before mock data, before block explorers, before anything else—we show live Bitcoin network traffic. This proves the entire stack works and creates immediate engagement.
-
-**Prerequisites:** Node Session 9.5 (Observer Mode) must be complete first.
-
-#### Session 1.1: Minimal RPC Client for Observer
-**Objective:** Build just enough RPC client to support observer mode
+#### Session 1.1: Minimal RPC Client ✅
+**Objective:** Build RPC client for observer mode
 
 **Tasks:**
-- Create `src/lib/rpc/client.ts`:
-  - JSON-RPC 1.0 request builder
-  - Fetch wrapper with timeout
-  - Basic error handling
-  - Configurable endpoint (default localhost:8332)
-- Create `src/lib/rpc/types.ts` (observer types only initially):
-  ```typescript
-  interface ObserverStats {
-    peers: number;
-    messages_received: number;
-    blocks_announced: number;
-    txs_announced: number;
-    uptime_seconds: number;
-    mode: 'observer' | 'full';
-  }
-
-  interface ObservedBlock {
-    hash: string;
-    time_received: number;
-    from_peer: string;
-  }
-
-  interface ObservedTx {
-    txid: string;
-    time_received: number;
-  }
-  ```
-- Create typed method wrappers:
-  - `getObserverStats(): Promise<ObserverStats>`
-  - `getObservedBlocks(limit?: number): Promise<ObservedBlock[]>`
-  - `getObservedTxs(limit?: number): Promise<ObservedTx[]>`
-- Create `src/lib/stores/connection.ts`:
-  - Simple connection state store
-  - Auto-reconnect on failure
-  - Health check via `getObserverStats`
+- Create `src/lib/rpc/client.ts` with JSON-RPC 1.0 support
+- Create `src/lib/rpc/types.ts` with observer types
+- Create typed method wrappers for observer endpoints
+- Create `src/lib/stores/connection.ts` with health checks
 
 **Deliverables:** RPC client sufficient for observer mode
 
 ---
 
-#### Session 1.2: Live Network Observer View
+#### Session 1.2: Live Network Observer View ✅
 **Objective:** Real-time display of Bitcoin network activity
 
 **Tasks:**
-- Create `src/routes/observer/+page.svelte` (make this the default home)
-- Create `ObserverStats` component:
-  - Connected peer count (big number, prominent)
-  - Messages received (by type)
-  - Uptime
-  - Mode indicator ("Observer Mode - Watching the Network")
-- Create `LiveBlockFeed` component:
-  - Real-time list of announced blocks (last 20)
-  - Block hash (truncated, copyable)
-  - Time received (relative: "3s ago")
-  - Auto-scroll with pause on hover
-  - Visual pulse animation on new block
-- Create `LiveTxFeed` component:
-  - Real-time transaction stream
-  - Txid (truncated)
-  - Rate indicator (tx/sec rolling average)
-  - Toggle to pause/resume (can be overwhelming)
-- Create `NetworkPulse` component:
-  - Simple CSS animation showing activity
-  - Pulses/glows on each received message
-  - Visual heartbeat of Bitcoin
-- Implement polling:
-  - `getObserverStats` every 2 seconds
-  - `getObservedBlocks` every 3 seconds
-  - `getObservedTxs` every 2 seconds
-- Update Sidebar:
-  - "Observer" as primary nav item (default home)
-  - Live indicator dot (green when connected, pulsing when receiving)
-- Handle states gracefully:
-  - "Connecting..." (initial)
-  - "Waiting for peers..." (0 peers)
-  - "Observing Bitcoin Network" (1+ peers, receiving data)
-  - "Node not running" (connection failed)
-  - "Node not in observer mode" (connected but wrong mode)
+- Create observer page with live block/transaction feeds
+- Implement mempool.space API integration for block height and hashrate
+- Create network pulse visualization
+- Implement polling for real-time updates
+- Handle connection states gracefully
 
 **Deliverables:** The wow moment—live Bitcoin traffic in the GUI
 
 ---
 
-#### Session 1.3: Connection Settings & Polish
+#### Session 1.3: Connection Settings & Polish 🎯
 **Objective:** Make observer view production-ready
 
 **Tasks:**
@@ -306,257 +283,370 @@ Each session is designed to be completable in a single focused chat session.
   - RPC endpoint URL input
   - Test connection button
   - Save to localStorage
-- Add `ConnectionStatus` component to Header:
-  - Show connected/disconnected state
-  - Click to open settings
+- Add `ConnectionStatus` component to Header
 - Add CORS handling documentation/guidance
 - Improve error messages (user-friendly)
-- Add "What am I seeing?" help tooltip/modal explaining observer mode
+- Add "What am I seeing?" help tooltip explaining observer mode
 - Responsive design verification
 
 **Deliverables:** Polished, user-friendly observer experience
 
 ---
 
-### Phase 2: Full RPC Client & Mock Mode
+### Phase 2: Onboarding & Sync Experience
 
-#### Session 2.1: Complete RPC Client
-**Objective:** Extend RPC client for all node methods
+#### Session 2.1: First-Run Onboarding Flow
+**Objective:** Welcome new users with clear choices
 
 **Tasks:**
-- Extend `src/lib/rpc/types.ts` with full type definitions:
-  ```typescript
-  interface BlockchainInfo {
-    chain: string;
-    blocks: number;
-    headers: number;
-    bestblockhash: string;
-    difficulty: number;
-    mediantime: number;
-    verificationprogress: number;
-    chainwork: string;
-  }
-  // ... Block, Transaction, etc.
-  ```
-- Add typed method wrappers:
-  - `getBlockchainInfo(): Promise<BlockchainInfo>`
-  - `getBlock(hash: string, verbosity?: number): Promise<Block>`
-  - `getBlockHash(height: number): Promise<string>`
-  - `getRawTransaction(txid: string, verbose?: boolean): Promise<Transaction | string>`
-  - `sendRawTransaction(hex: string): Promise<string>`
-  - `getBlockTemplate(): Promise<BlockTemplate>`
-  - `submitBlock(hex: string): Promise<string | null>`
+- Create first-run detection (localStorage flag)
+- Create welcome screen with Bitcoin Echo branding:
+  - "Observe" option — Watch the live network, no storage
+  - "Validate" option — Run a full validating node
+- If "Validate" chosen:
+  - Storage requirements explanation
+  - Data directory information
+  - "What happens next" explanation
+- Create smooth transitions between onboarding steps
+- Store user choice for future sessions
 
-**Deliverables:** Complete typed RPC client
+**Deliverables:** Engaging first-run experience
 
 ---
 
-#### Session 2.2: Mock Data System
-**Objective:** Enable GUI development without a running node
+#### Session 2.2: Sync View — The Journey
+**Objective:** Transform IBD from waiting into time travel
 
 **Tasks:**
-- Create `src/lib/rpc/mock.ts`:
-  - Mock implementation of all RPC methods
-  - Simulated blockchain state (genesis + 100 blocks)
-  - Simulated observer mode data (fake live traffic)
-  - Realistic mock transactions
-- Create mock mode toggle:
-  - Environment variable: `VITE_MOCK_MODE=true`
-  - Runtime toggle in settings (dev only)
-- Add visual indicator when in mock mode
-
-**Deliverables:** Full mock mode for development
-
----
-
-### Phase 3: Dashboard View
-
-#### Session 3.1: Chain Status Panel
-**Objective:** Display current blockchain state (for full node mode)
-
-**Tasks:**
-- Create/update `src/routes/+page.svelte` (Dashboard for full node mode)
-- Create `ChainStatusCard` component:
-  - Current height
-  - Best block hash (linked to explorer)
-  - Current difficulty
-  - Chain work (formatted)
-  - Median time past
-- Auto-refresh every 10 seconds
-- Loading skeleton while fetching
-- Update Sidebar: Show Dashboard when in full node mode, Observer when in observer mode
-
-**Deliverables:** Basic chain status display
-
----
-
-#### Session 3.2: Sync Progress
-**Objective:** Visualize synchronization state
-
-**Tasks:**
-- Create `SyncProgressCard` component:
-  - Progress bar (headers vs blocks)
-  - Estimated time remaining (if syncing)
+- Create `src/routes/sync/+page.svelte` as default home during IBD
+- Implement dual-timeline visualization:
+  - Live network state (from mempool.space): current height, hashrate, fees
+  - Local validation state (from node RPC): validated height, progress
+  - Visual gap indicator showing how far behind
+- Create progress bar spanning 2009 → present
+- Display current validation stats:
+  - Blocks validated (this session / total)
+  - Transactions checked
+  - Signatures verified
+  - UTXO set size
+- Display performance metrics:
   - Blocks/second rate
-  - "Synced" badge when complete
-- Create simple sync progress chart:
-  - X-axis: time
-  - Y-axis: block height
-  - Show sync velocity over last hour
+  - Estimated time remaining
+  - Session duration
+- Create "Currently Validating" block indicator
 
-**Deliverables:** Sync visualization
+**Deliverables:** Engaging sync progress visualization
 
 ---
 
-#### Session 3.3: Peer Information
-**Objective:** Display network connectivity
-
-**Note:** Requires `getpeerinfo` RPC (not yet in bitcoin-echo).
+#### Session 2.3: Historical Milestones
+**Objective:** Educate users as they travel through Bitcoin history
 
 **Tasks:**
-- Create `PeersCard` component:
-  - "Coming soon" placeholder initially
-  - Design ready for when RPC is available
-- Document needed RPC addition in bitcoin-echo backlog
+- Create milestone data structure with historical events:
+  - Block 0: Genesis — "The beginning. January 3, 2009."
+  - Block 170: First transaction — Hal Finney receives 10 BTC
+  - Block 210,000: First halving — Reward drops to 25 BTC
+  - Block 420,000: Second halving — Reward drops to 12.5 BTC
+  - Block 481,824: SegWit activates
+  - Block 630,000: Third halving — Reward drops to 6.25 BTC
+  - Block 709,632: Taproot activates
+  - Block 840,000: Fourth halving — Reward drops to 3.125 BTC
+- Create milestone notification component (appears as user passes each)
+- Create "Approaching milestone" indicator
+- Store milestones as static data (embedded, not fetched)
 
-**Deliverables:** Peer panel placeholder
+**Deliverables:** Educational journey through Bitcoin history
 
 ---
 
-### Phase 4: Block Explorer
-
-#### Session 4.1: Block List View
-**Objective:** Browse recent blocks
+#### Session 2.4: Resume & Completion Experience
+**Objective:** Handle sync interruption and celebrate completion
 
 **Tasks:**
-- Create `src/routes/blocks/+page.svelte`
+- Implement resume detection on startup:
+  - Detect partial sync via `getblockchaininfo`
+  - Show "Welcome back" screen with resume context
+  - Display last session info, progress saved
+- Track session history in localStorage:
+  - Session start/end times
+  - Blocks validated per session
+  - Total sessions count
+- Create sync completion celebration:
+  - Summary of the journey (total time, sessions, stats)
+  - "Don't trust. Verify. ✓" affirmation
+  - Transition to full node dashboard
+
+**Deliverables:** Graceful resume and meaningful completion
+
+---
+
+#### Session 2.5: Mode Detection & Transitions
+**Objective:** Seamlessly adapt to node state
+
+**Tasks:**
+- Implement mode detection from `getblockchaininfo`:
+  - Observer mode: node running with --observe
+  - Syncing: initialblockdownload = true
+  - Synced: initialblockdownload = false
+- Update sidebar to reflect current mode
+- Implement smooth transitions between modes
+- Allow Observer view during sync (mempool.space data + local sync progress)
+- Update header status indicator:
+  - `[👁 OBSERVER]` — Observer mode
+  - `[⟳ SYNCING 43.7%]` — Syncing
+  - `[✓ SYNCED]` — Fully synced
+  - `[⚠ OFFLINE]` — Disconnected
+
+**Deliverables:** Context-aware UI that adapts to node state
+
+---
+
+### Phase 3: Chain Explorer
+
+#### Session 3.1: Block List View
+**Objective:** Browse validated blocks
+
+**Tasks:**
+- Create `src/routes/chain/+page.svelte`
 - Create `BlockList` component:
-  - Recent 20 blocks
-  - Height, hash (truncated), time, tx count
-  - Pagination (load more)
-- Create `BlockListItem` component:
-  - Click to view details
-  - Time ago (relative)
+  - Recent validated blocks (most recent first)
+  - Height, hash (truncated), timestamp, tx count
+  - "Load more" pagination
+- Click block to navigate to detail view
+- Show relative timestamps ("3 minutes ago")
+- Link hashes to mempool.space for external reference
 
 **Deliverables:** Block list view
 
 ---
 
-#### Session 4.2: Block Detail View
+#### Session 3.2: Block Detail View
 **Objective:** Display single block details
 
 **Tasks:**
-- Create `src/routes/block/[hash]/+page.svelte`
-- Display:
-  - Header info (version, prev hash, merkle root, time, bits, nonce)
-  - Transaction list (txids, linked to tx view)
-  - Size/weight
-  - Navigation: prev/next block
-- Handle invalid hash gracefully
+- Create `src/routes/chain/block/[hash]/+page.svelte`
+- Display block header info:
+  - Height, hash, previous hash
+  - Timestamp, version, bits, nonce
+  - Merkle root, size, weight
+- Display transaction list:
+  - Txids (clickable to tx detail)
+  - Coinbase transaction highlighted
+- Navigation: previous/next block buttons
+- Handle invalid/unknown hash gracefully
+- Copy-to-clipboard for hashes
 
 **Deliverables:** Block detail view
 
 ---
 
-### Phase 5: Transaction View
-
-#### Session 5.1: Transaction Detail View
+#### Session 3.3: Transaction Detail View
 **Objective:** Display transaction details
 
 **Tasks:**
-- Create `src/routes/tx/[txid]/+page.svelte`
-- Display:
+- Create `src/routes/chain/tx/[txid]/+page.svelte`
+- Display transaction info:
   - Txid, wtxid
   - Version, locktime
-  - Inputs list (prev txid:vout, scriptSig hex)
-  - Outputs list (value, scriptPubKey hex, address if decodable)
   - Size, vsize, weight
-  - Raw hex (collapsible)
-- Handle mempool vs confirmed transactions
+  - Fee (if calculable)
+- Display inputs list:
+  - Previous txid:vout (clickable)
+  - scriptSig hex (expandable)
+  - Witness data (if present)
+- Display outputs list:
+  - Value (in BTC and sats)
+  - scriptPubKey hex (expandable)
+  - Address (if standard type)
+- Collapsible raw hex view
+- Link to containing block
 
 **Deliverables:** Transaction detail view
 
 ---
 
-#### Session 5.2: Transaction Broadcast
-**Objective:** Allow submitting raw transactions
+#### Session 3.4: Search Functionality
+**Objective:** Find blocks and transactions by identifier
 
 **Tasks:**
-- Create `src/routes/broadcast/+page.svelte`
-- Form to paste raw transaction hex
-- Validation (basic hex check)
-- Submit via `sendrawtransaction`
-- Display result (txid on success, error message on failure)
-- Link to transaction view on success
+- Add search input to header
+- Implement search logic:
+  - Detect input type (block hash, txid, height)
+  - Route to appropriate detail view
+- Handle search failures gracefully
+- Add search history (recent searches)
+- Keyboard shortcut (Cmd/Ctrl+K)
 
-**Deliverables:** Transaction broadcast functionality
+**Deliverables:** Search functionality
 
 ---
 
-### Phase 6: RPC Console
+### Phase 4: Network & Mempool
 
-#### Session 6.1: Interactive Console
-**Objective:** Power user JSON-RPC interface
+#### Session 4.1: Network View
+**Objective:** Display peer connectivity
+
+**Tasks:**
+- Create `src/routes/network/+page.svelte`
+- Display connection summary:
+  - Total peers, inbound/outbound
+  - Bandwidth usage (if available from RPC)
+- Display peer list:
+  - IP/hostname, version, services
+  - Connection duration
+  - Data transferred
+- Note: Requires `getpeerinfo` RPC (may need node enhancement)
+- Fallback: Show basic peer count until RPC available
+
+**Deliverables:** Network connectivity view
+
+---
+
+#### Session 4.2: Mempool View
+**Objective:** Display unconfirmed transactions
+
+**Tasks:**
+- Create `src/routes/mempool/+page.svelte`
+- Display mempool summary:
+  - Transaction count
+  - Total size/weight
+  - Fee distribution (histogram)
+- Display transaction list:
+  - Recent transactions
+  - Fee rate (sat/vB)
+  - Size
+- Click to view transaction detail
+- Note: Only available when fully synced
+- Show "Sync to view mempool" message during IBD
+
+**Deliverables:** Mempool view
+
+---
+
+### Phase 5: Power User Tools
+
+#### Session 5.1: RPC Console
+**Objective:** Direct JSON-RPC interface for developers
 
 **Tasks:**
 - Create `src/routes/console/+page.svelte`
-- Features:
-  - Method dropdown (all 7 methods)
-  - Parameter input (JSON or form-based)
+- Implement console interface:
+  - Method selector dropdown (all available methods)
+  - Parameters input (JSON format)
   - Execute button
-  - Response display (formatted JSON)
-  - Request history (session)
-- Syntax highlighting for JSON
+  - Response display with syntax highlighting
+- Request/response history (session)
 - Copy response button
+- Save favorite commands
+- Auto-complete for method names
 
-**Deliverables:** RPC console
-
----
-
-### Phase 7: Polish & Integration Testing
-
-#### Session 7.1: Integration Testing
-**Objective:** Test against real node
-
-**Tasks:**
-- Test all views against bitcoin-echo on regtest
-- Document any RPC response format issues
-- Fix any discrepancies
-- Add error boundaries throughout
-
-**Deliverables:** Integration-tested GUI
+**Deliverables:** Interactive RPC console
 
 ---
 
-#### Session 7.2: Visual Polish
-**Objective:** Production-ready aesthetics
+#### Session 5.2: Log Viewer
+**Objective:** Live log stream from node
 
 **Tasks:**
-- Review all views for consistency
-- Add animations/transitions
-- Improve loading states
-- Responsive design verification
-- Favicon and app title
-- About/credits modal
+- Create `src/routes/logs/+page.svelte`
+- Note: Requires log streaming capability (may need node enhancement)
+- Alternative: Display recent log entries if streaming unavailable
+- Implement log filtering:
+  - By level (ERROR, WARN, INFO, DEBUG)
+  - By component (NET, P2P, CONS, etc.)
+  - Text search
+- Auto-scroll with pause on hover
+- Clear log display button
+- Export log to file
 
-**Deliverables:** Polished GUI
+**Deliverables:** Log viewing capability
 
 ---
 
-#### Session 7.3: Documentation & Release
-**Objective:** Prepare for community use
+#### Session 5.3: Verbose/Developer Mode
+**Objective:** Kitchen sink toggle for power users
 
 **Tasks:**
-- Write README:
-  - Installation
-  - Configuration (RPC endpoint)
+- Add "Developer Mode" toggle in settings
+- When enabled, show additional data throughout:
+  - Raw hex in transaction view
+  - Script disassembly
+  - UTXO delta in block view
+  - Wire protocol messages in network view
+- Add timing information for RPC calls
+- Show technical IDs and internal state
+- Persist preference in localStorage
+
+**Deliverables:** Developer mode toggle
+
+---
+
+### Phase 6: Polish & Release
+
+#### Session 6.1: Animations & Micro-interactions
+**Objective:** Delightful visual polish
+
+**Tasks:**
+- Add smooth page transitions
+- Add loading skeletons for async content
+- Add subtle animations:
+  - New block pulse in block feed
+  - Sync progress celebration moments
+  - Connection status changes
+- Ensure animations respect prefers-reduced-motion
+- Add optional sound for new blocks (disabled by default)
+
+**Deliverables:** Polished interactions
+
+---
+
+#### Session 6.2: Responsive Design & Accessibility
+**Objective:** Works everywhere, for everyone
+
+**Tasks:**
+- Verify mobile responsiveness for all views
+- Test tablet layouts
+- Add keyboard navigation throughout
+- Ensure proper focus management
+- Add ARIA labels where needed
+- Test with screen readers
+- Verify color contrast meets WCAG AA
+
+**Deliverables:** Accessible, responsive design
+
+---
+
+#### Session 6.3: Documentation & Screenshots
+**Objective:** Ready for community
+
+**Tasks:**
+- Write comprehensive README:
+  - Installation instructions
+  - Configuration (RPC endpoint, settings)
   - Development setup
   - Building for production
-- Add screenshot(s)
-- Create production build
-- Tag v0.1.0 release
+- Add screenshots of key views
+- Document all configuration options
+- Add troubleshooting guide
+- Create CHANGELOG
 
-**Deliverables:** First release
+**Deliverables:** Complete documentation
+
+---
+
+#### Session 6.4: v1.0 Release
+**Objective:** Ship it
+
+**Tasks:**
+- Final testing on all supported browsers
+- Production build verification
+- Performance audit (Lighthouse)
+- Security review (no sensitive data exposure)
+- Tag v1.0.0 release
+- Update bitcoinecho.org with GUI announcement
+
+**Deliverables:** First stable release
 
 ---
 
@@ -565,52 +655,53 @@ Each session is designed to be completable in a single focused chat session.
 ### Phase 0: Foundation ✅
 | Session | Status | Notes |
 |---------|--------|-------|
-| 0.1 Repository Setup | Complete | Dec 2025 — SvelteKit + TS + Tailwind + ESLint/Prettier, Node 20 LTS |
-| 0.2 Design System | Complete | Dec 2025 — Brand colors, Button/Card/Badge/Spinner/Hash components, Header/Sidebar shell |
+| 0.1 Repository Setup | ✅ Complete | Dec 2025 — SvelteKit + TS + Tailwind + ESLint/Prettier, Node 20 LTS |
+| 0.2 Design System | ✅ Complete | Dec 2025 — Brand colors, Button/Card/Badge/Spinner/Hash components, Header/Sidebar shell |
 
-### Phase 1: Live Observer 🎯
+### Phase 1: Observer Mode
 | Session | Status | Notes |
 |---------|--------|-------|
-| 1.1 Minimal RPC Client | ✅ Complete | Dec 2025 — JSON-RPC client (client.ts), typed observer interfaces (types.ts), connection store with health checks and polling (connection.ts), getObserverStats/getObservedBlocks/getObservedTxs methods |
-| 1.2 Live Network Observer View | ✅ Complete | Dec 2025 — Live observer page at /observer with real-time block feed (100 recent), transaction feed (1000 recent), network stats (peers, uptime, messages), live block height and hashrate from mempool.space API, stable rendering with derived stores, mempool.space explorer links, contextual connection status messages, live-updating timestamps |
-| 1.3 Connection Settings & Polish | Not Started | |
+| 1.1 Minimal RPC Client | ✅ Complete | Dec 2025 — JSON-RPC client, typed observer interfaces, connection store with health checks |
+| 1.2 Live Observer View | ✅ Complete | Dec 2025 — Live block/tx feeds, mempool.space integration for height/hashrate, network stats, stable rendering |
+| 1.3 Connection Settings | Not Started | |
 
-### Phase 2: Full RPC & Mock Mode
+### Phase 2: Onboarding & Sync Experience
 | Session | Status | Notes |
 |---------|--------|-------|
-| 2.1 Complete RPC Client | Not Started | |
-| 2.2 Mock Data System | Not Started | |
+| 2.1 First-Run Onboarding | Not Started | |
+| 2.2 Sync View — The Journey | Not Started | |
+| 2.3 Historical Milestones | Not Started | |
+| 2.4 Resume & Completion | Not Started | |
+| 2.5 Mode Detection | Not Started | |
 
-### Phase 3: Dashboard
+### Phase 3: Chain Explorer
 | Session | Status | Notes |
 |---------|--------|-------|
-| 3.1 Chain Status | Not Started | |
-| 3.2 Sync Progress | Not Started | |
-| 3.3 Peer Info | Not Started | Requires `getpeerinfo` RPC |
+| 3.1 Block List | Not Started | |
+| 3.2 Block Detail | Not Started | |
+| 3.3 Transaction Detail | Not Started | |
+| 3.4 Search | Not Started | |
 
-### Phase 4: Block Explorer
+### Phase 4: Network & Mempool
 | Session | Status | Notes |
 |---------|--------|-------|
-| 4.1 Block List | Not Started | |
-| 4.2 Block Detail | Not Started | |
+| 4.1 Network View | Not Started | May need `getpeerinfo` RPC |
+| 4.2 Mempool View | Not Started | Only when synced |
 
-### Phase 5: Transaction View
+### Phase 5: Power User Tools
 | Session | Status | Notes |
 |---------|--------|-------|
-| 5.1 Transaction Detail | Not Started | |
-| 5.2 Transaction Broadcast | Not Started | |
+| 5.1 RPC Console | Not Started | |
+| 5.2 Log Viewer | Not Started | May need log streaming RPC |
+| 5.3 Developer Mode | Not Started | |
 
-### Phase 6: RPC Console
+### Phase 6: Polish & Release
 | Session | Status | Notes |
 |---------|--------|-------|
-| 6.1 Interactive Console | Not Started | |
-
-### Phase 7: Polish
-| Session | Status | Notes |
-|---------|--------|-------|
-| 7.1 Integration Testing | Not Started | Needs node on regtest |
-| 7.2 Visual Polish | Not Started | |
-| 7.3 Documentation | Not Started | |
+| 6.1 Animations | Not Started | |
+| 6.2 Responsive & A11y | Not Started | |
+| 6.3 Documentation | Not Started | |
+| 6.4 v1.0 Release | Not Started | |
 
 ---
 
@@ -619,102 +710,192 @@ Each session is designed to be completable in a single focused chat session.
 ### Parallel Development Strategy
 
 ```
-bitcoin-echo                  bitcoinecho-gui
-─────────────                 ───────────────
-                              Phase 0: Foundation ✅ DONE
+NODE                                  GUI
+────                                  ───
+                                      Phase 0: Foundation ✅
+                                      Phase 1.1-1.2: Observer ✅
 
-Session 9.5: Observer Mode ─► Phase 1: Live Observer
-                              🎉 THE WOW MOMENT 🎉
+9.6.0 Storage Foundation    ──────►   1.3 Connection Polish
+9.6.1 Block Pipeline        ──────►   2.1 Onboarding Flow
+9.6.2 Transaction Pipeline  ──────►   2.2 Sync View
+9.6.3 Regtest Mining        ──────►   2.3 Milestones
+9.6.4 Regtest Integration   ──────►   2.4 Resume & Completion
+9.6.5 Headers-First Sync    ──────►   2.5 Mode Detection
+9.6.6 Testnet Validation    ──────►   3.1-3.2 Block List/Detail
+9.6.7 Mainnet Readiness     ──────►   3.3-3.4 Tx Detail/Search
 
-Session 9.6: Full Integration Phase 2: Full RPC & Mock Mode
-Phase 10: Mining Interface    Phase 3-5: Dashboard, Explorer, Tx Views
-
-Phase 11: Testing & Hardening Phase 6-7: Console, Polish & Release
-Phase 12: Completion          (Full integration testing)
+Phase 10: Mining            ──────►   Phase 4: Network & Mempool
+Phase 11: Testing           ──────►   Phase 5: Power Tools
+Phase 12: Completion        ──────►   Phase 6: Polish & Release
 ```
-
-**Critical Path:** Node Session 9.5 → GUI Phase 1 (Observer)
 
 ### Dependencies & Blockers
 
 | GUI Feature | Node Requirement | Status |
 |-------------|------------------|--------|
-| **Live Network Observer** | Session 9.5 (`--observe` mode, observer RPCs) | ✅ **Complete** (Node Session 9.5 complete, GUI Sessions 1.1 & 1.2 complete) |
-| Dashboard chain status | `getblockchaininfo` | Ready (after 9.6) |
-| Block explorer | `getblock`, `getblockhash` | Ready (after 9.6) |
-| Transaction view | `getrawtransaction` | Ready (after 9.6) |
-| Transaction broadcast | `sendrawtransaction` | Ready (after 9.6) |
-| Peer information | `getpeerinfo` (not implemented) | Blocked |
-| Mining view | `getblocktemplate` (stub) | Partial |
-| Real chain sync | Full IBD capability | Phase 11 |
+| Observer Mode | Session 9.5 (`--observe`, observer RPCs) | ✅ Complete |
+| Sync Progress | Session 9.6.0+ (`getblockchaininfo` with sync data) | Pending |
+| Block Explorer | Session 9.6.1+ (`getblock`, validated blocks) | Pending |
+| Transaction View | Session 9.6.2+ (`getrawtransaction` with validation) | Pending |
+| Mempool View | Session 9.6.2+ (working mempool) | Pending |
+| Network/Peers | `getpeerinfo` RPC (not yet implemented) | Blocked |
+| Log Streaming | Log streaming RPC (not yet implemented) | Blocked |
 
-### Recommended RPC Additions (backlog for bitcoin-echo)
+### Recommended Future RPC Additions
 
 These are NOT required for MVP but would enhance the GUI:
 
-1. **`getpeerinfo`** — List connected peers
+1. **`getpeerinfo`** — List connected peers with details
 2. **`getmempoolinfo`** — Mempool statistics
-3. **`getnetworkinfo`** — Network state
+3. **`getnetworkinfo`** — Network state summary
 4. **`uptime`** — Node uptime
+5. **Log streaming** — Real-time log access via RPC or WebSocket
 
 These could be added post-Phase 11 without breaking ossification (they're read-only informational endpoints, not consensus-critical).
 
 ---
 
-## Design Philosophy for GUI
+## Appendix: Key UI Mockups
 
-### Guiding Principles
+### Sync View (During IBD)
 
-1. **Window, Not Wall**
-   The GUI is a view into the node, not a barrier. Show raw data alongside formatted data. Let users see the underlying JSON-RPC. Don't hide complexity; make it navigable.
+```
+┌────────────────────────────────────────────────────────────────┐
+│  [⟳ SYNCING 43.7%]  Block 367,500 / 874,571    ● Connected    │
+├────────────────────────────────────────────────────────────────┤
+│                                                                │
+│  YOUR VALIDATION JOURNEY                                       │
+│  ═══════════════════════════════════════════════════════════  │
+│  2009 ████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 2025  │
+│       ▲                  ▲                              ▲      │
+│    genesis          you: 367,500                  network     │
+│                     Dec 2015                      874,571     │
+│  ═══════════════════════════════════════════════════════════  │
+│                                                                │
+│  ┌────────────────────────────┐ ┌────────────────────────────┐│
+│  │  LIVE NETWORK              │ │  YOUR PROGRESS             ││
+│  │  (mempool.space)           │ │  (local validation)        ││
+│  │                            │ │                            ││
+│  │  Height:  874,571          │ │  Validated: 367,500        ││
+│  │  Hashrate: 103.92 TH/s     │ │  Remaining: 507,071        ││
+│  │  Mempool: 3,482 txs        │ │  Speed: 423 blocks/sec     ││
+│  │  Fees: 12-45 sat/vB        │ │  ETA: 14 hours             ││
+│  └────────────────────────────┘ └────────────────────────────┘│
+│                                                                │
+│  ┌──────────────────────────────────────────────────────────┐ │
+│  │  ⭐ MILESTONE PASSED                                      │ │
+│  │  Block 367,000 — OP_CHECKLOCKTIMEVERIFY activated        │ │
+│  │  Time-locked transactions become possible                 │ │
+│  └──────────────────────────────────────────────────────────┘ │
+│                                                                │
+│  Currently Validating                                          │
+│  ─────────────────────                                        │
+│  Block #367,500 │ 982 txs │ 0.87 MB │ ████████░░ scripts...  │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
 
-2. **Offline-First Thinking**
-   The GUI should gracefully handle:
-   - Node not running
-   - Node still syncing
-   - Node disconnected mid-session
+### Sync Complete Celebration
 
-   Always show what state we're in. Never leave users guessing.
+```
+┌────────────────────────────────────────────────────────────────┐
+│                                                                │
+│                         ✓ FULLY SYNCED                         │
+│                                                                │
+│            Your node has validated the entire Bitcoin          │
+│            blockchain from genesis to the present.             │
+│                                                                │
+│  ┌──────────────────────────────────────────────────────────┐ │
+│  │                                                          │ │
+│  │   Final block: #874,571                                  │ │
+│  │   Chain work:  0x0000...5b4c3d2e1f0a9b8c                │ │
+│  │                                                          │ │
+│  │   Your Journey                                           │ │
+│  │   ─────────────                                          │ │
+│  │   Total time:      3 days, 7 hours                       │ │
+│  │   Sessions:        6                                     │ │
+│  │   Blocks validated: 874,571                              │ │
+│  │   Transactions:     1,024,847,293                        │ │
+│  │   Signatures:       2,847,293,847                        │ │
+│  │   UTXO set:         156M outputs                         │ │
+│  │                                                          │ │
+│  │   You've independently verified every transaction        │ │
+│  │   in Bitcoin's 16-year history.                         │ │
+│  │                                                          │ │
+│  │   Don't trust. Verify. ✓                                │ │
+│  │                                                          │ │
+│  └──────────────────────────────────────────────────────────┘ │
+│                                                                │
+│                        [Enter Full Node Mode →]                │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
 
-3. **Developer-Friendly**
-   The RPC console is not a power-user afterthought—it's a first-class feature. Many users of Bitcoin Echo will be developers studying the protocol. Make exploration easy.
+### Resume Screen
 
-4. **Timeless Aesthetics**
-   Avoid trendy design. Choose clean, minimal, functional. The GUI should look as appropriate in 2035 as it does today.
+```
+┌────────────────────────────────────────────────────────────────┐
+│                                                                │
+│                    Welcome back to Bitcoin Echo                │
+│                                                                │
+│  ┌──────────────────────────────────────────────────────────┐ │
+│  │                                                          │ │
+│  │   Last session: December 15, 2025 at 11:42 PM           │ │
+│  │   You validated up to block 367,500 (December 2015)     │ │
+│  │                                                          │ │
+│  │   Progress saved: 43.7%                                  │ │
+│  │   UTXO set: 47.2M outputs                               │ │
+│  │                                                          │ │
+│  └──────────────────────────────────────────────────────────┘ │
+│                                                                │
+│         [Continue Sync]              [Start in Observer Mode] │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
 
-5. **Performance Budget**
-   - Initial load: < 500KB JS
-   - Time to interactive: < 2 seconds
-   - No runtime CSS-in-JS (Tailwind compiles away)
+### First-Run Onboarding
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                                                                │
+│                         ◉ BITCOIN ECHO                         │
+│                                                                │
+│           A faithful implementation of the Bitcoin             │
+│           protocol, built for permanence.                      │
+│                                                                │
+│                                                                │
+│           ┌─────────────────────────────────────┐             │
+│           │  👁  OBSERVE                        │             │
+│           │                                     │             │
+│           │  Watch the live Bitcoin network     │             │
+│           │  No storage needed • Instant start  │             │
+│           └─────────────────────────────────────┘             │
+│                                                                │
+│           ┌─────────────────────────────────────┐             │
+│           │  ✓  VALIDATE                        │             │
+│           │                                     │             │
+│           │  Run a full validating node         │             │
+│           │  ~600 GB storage • Initial sync     │             │
+│           └─────────────────────────────────────┘             │
+│                                                                │
+│                                                                │
+│           "Don't trust. Verify."                               │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Open Questions
+## Open Questions (Resolved)
 
-### CORS Handling
+### CORS Handling ✅
+**Resolution:** Bitcoin Echo node (Session 9.5) includes CORS preflight support. Headers are sent with RPC responses.
 
-The bitcoin-echo RPC server currently doesn't send CORS headers. Options:
-1. Add `Access-Control-Allow-Origin: *` to RPC responses (simplest)
-2. Run GUI through a local proxy
-3. Use browser extension to inject headers (development only)
-
-**Recommendation:** Add CORS headers to bitcoin-echo. This is a one-line addition to the RPC HTTP response and doesn't affect security for a localhost-bound server.
+### Mock Mode
+**Resolution:** Skipped. Observer mode provides live data via mempool.space + node RPC. Mock mode is unnecessary given we can always observe the real network.
 
 ### Authentication
-
-The bitcoin-echo RPC has no authentication. This is fine for localhost-only binding but should be documented clearly.
-
-**Recommendation:** Document that RPC should never be exposed to the network without authentication, which is out of scope for the ossified core.
-
----
-
-## Timeline Alignment
-
-| Milestone | bitcoin-echo | bitcoinecho-gui |
-|-----------|--------------|-----------------|
-| **Proof of Concept** | Phase 11 in progress | Phase 5 complete |
-| **Community Testing** | Phase 11 complete | Phase 7 complete |
-| **MVP Release** | Phase 12 complete | v1.0 tagged |
+**Recommendation:** Document that RPC should never be exposed to the network without authentication. Out of scope for the ossified core—localhost binding is the security model.
 
 ---
 

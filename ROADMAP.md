@@ -2,7 +2,7 @@
 
 **A Living Document for Development Sessions**
 
-*Last Updated: December 13, 2025*
+*Last Updated: December 17, 2025*
 
 ---
 
@@ -51,7 +51,7 @@ bitcoin-echo/             ← Sibling folder (C implementation, to be created)
 - [x] Core types and headers defined (Phase 0 complete)
 
 ### In Progress
-- [ ] Phase 9: Application Layer (Session 9.6 remaining — Full Node Integration)
+- [ ] Phase 9: Application Layer (Session 9.6 remaining — Full Node Integration, 8 sub-sessions: 9.6.0-9.6.7)
 
 ### Not Yet Started
 - [ ] Phase 10: Mining Interface
@@ -1073,33 +1073,280 @@ Each unit is designed to be completable in a single focused chat session. Units 
 ---
 
 #### Session 9.6: Full Node Integration
-**Objective:** Wire all components for full validating node operation
+
+**Overview:** This is the critical integration session where all components come together into a fully operational validating node. Due to its scope and importance, it is divided into sub-sessions (9.6.0 through 9.6.7) that build incrementally toward mainnet readiness.
+
+---
+
+##### Session 9.6.0: Storage Foundation & Chain Restoration
+**Objective:** The node remembers who it is — state persists across restarts
 
 **Tasks:**
-- Extend main.c to support full node mode (default, without --observe):
-  - Initialize all storage (block files, UTXO DB, block index DB)
-  - Initialize consensus engine with restored chain state
-  - Initialize mempool
-  - Start headers-first sync when peers connect
-- Integrate block processing in event loop:
-  - Validate received blocks via consensus engine
-  - Update chain state and UTXO set
-  - Handle reorganizations
-  - Relay valid blocks to peers
-- Integrate transaction processing:
-  - Validate received transactions
-  - Add to mempool if valid
-  - Relay to peers per policy
-- Add full node RPC methods (if not already working):
-  - Verify all 7 methods work with real chain data
-- Test on regtest:
-  - Node starts with empty chain
-  - Can mine blocks via submitblock
-  - Chain state persists across restart
+- Initialize block storage on full node startup:
+  - Create data directory structure if not exists
+  - Open/create block files (blk*.dat)
+  - Verify block file integrity on startup
+- Initialize SQLite databases:
+  - UTXO database (utxo.db) with schema from §6.2
+  - Block index database (blocks.db) with schema from §6.3
+  - Configure WAL mode for both
+- Implement chain state restoration:
+  - Load best chain tip from block index
+  - Restore chain height, best block hash, cumulative chainwork
+  - Verify UTXO set consistency with chain tip
+- Connect consensus engine to persistent storage:
+  - UTXO lookups query SQLite instead of in-memory set
+  - Chain state queries use block index database
+- Wire `getblockchaininfo` RPC to report real chain state
+- Test resumable sync:
+  - Start node, process some blocks, stop
+  - Restart node, verify tip persists
+  - Verify UTXO set intact
 
-**Deliverables:** Fully operational validating node (ready for Phase 11 chain sync testing)
+**Deliverables:** Stateful node that survives restarts with chain state intact
 
-**Note:** This session completes Phase 9's original intent. Observer mode (9.5) provides immediate gratification while this session enables the full node capability tested in Phase 11.
+**Reference:** Whitepaper §6 (Storage)
+
+---
+
+##### Session 9.6.1: Block Processing Pipeline
+**Objective:** Blocks flow from network through validation to storage
+
+**Tasks:**
+- Wire consensus `consensus_validate_block()` to incoming blocks:
+  - Receive block from peer
+  - Deserialize and parse
+  - Validate via consensus engine
+- Implement atomic block application:
+  - Begin SQLite transaction
+  - Update UTXO set (add new outputs, remove spent)
+  - Update block index (add block entry, update best chain)
+  - Write block to block file
+  - Commit transaction (all or nothing)
+- Handle validation failures gracefully:
+  - Log detailed error information
+  - Reject block, continue operation
+  - Track invalid blocks to avoid re-download
+- Implement block relay after validation:
+  - Announce valid blocks to peers via inv
+  - Respond to getdata requests
+- Test block pipeline:
+  - Inject manually-crafted valid block
+  - Verify stored in block file
+  - Verify UTXO set updated
+  - Verify block index updated
+
+**Deliverables:** Working block validation → storage pipeline
+
+**Reference:** Whitepaper §3.2 (Consensus Engine), §6.4 (Atomic Updates)
+
+---
+
+##### Session 9.6.2: Transaction Processing Pipeline
+**Objective:** Transactions flow from network through validation to mempool
+
+**Tasks:**
+- Wire transaction validation with UTXO context:
+  - Receive transaction from peer or RPC
+  - Look up input UTXOs from database
+  - Validate via consensus engine with UTXO context
+  - Check mempool policy (size limits, fee rate, etc.)
+- Connect validated transactions to mempool:
+  - Add to mempool if valid and policy-compliant
+  - Track ancestor/descendant relationships
+  - Handle conflicts with existing mempool txs
+- Implement `sendrawtransaction` RPC with real validation:
+  - Parse hex transaction
+  - Validate against current UTXO set
+  - Add to mempool
+  - Return txid on success, error on failure
+- Implement `getrawtransaction` RPC with full lookup:
+  - Check mempool first
+  - Check confirmed transactions (requires tx index or block scan)
+  - Return hex or decoded transaction
+- Implement transaction relay:
+  - Announce new mempool txs to peers via inv
+  - Respect relay policy
+- Test transaction pipeline:
+  - Submit valid raw transaction via RPC
+  - Verify appears in mempool
+  - Verify relayed to peers
+
+**Deliverables:** Working transaction validation → mempool pipeline
+
+**Reference:** Whitepaper §3.3 (Protocol Layer), §4.5 (Transaction Validation)
+
+---
+
+##### Session 9.6.3: Regtest Mining
+**Objective:** We can create blocks in our sandbox (pulled forward from Phase 10)
+
+**Background:** Testing the full node requires the ability to create blocks. Rather than wait for Phase 10, we implement minimal mining support now to enable regtest testing. This is not the full mining interface—just enough to test.
+
+**Tasks:**
+- Implement regtest network parameters:
+  - Trivial difficulty target (can mine with CPU instantly)
+  - Regtest genesis block
+  - Regtest magic bytes
+  - No minimum difficulty
+- Make `getblocktemplate` functional:
+  - Select transactions from mempool by fee rate
+  - Construct coinbase transaction:
+    - Correct subsidy for height
+    - BIP-34 height encoding
+    - Configurable output address/script
+  - Build block header template
+  - Compute merkle root
+  - Return template with all necessary fields
+- Make `submitblock` functional:
+  - Parse submitted block hex
+  - Validate block via consensus engine
+  - If valid: apply to chain, update UTXO, store block
+  - Return null on success, error string on failure
+- Create simple Python mining script for testing:
+  - Call getblocktemplate
+  - Grind nonce until valid PoW (trivial on regtest)
+  - Call submitblock
+  - Repeat
+- Test regtest mining:
+  - Start node with --regtest
+  - Run mining script
+  - Verify chain grows
+  - Verify coinbase outputs appear in UTXO set
+
+**Deliverables:** Complete regtest mining capability
+
+**Reference:** Whitepaper §8 (Mining Interface)
+
+---
+
+##### Session 9.6.4: Regtest Integration Testing
+**Objective:** Full workflow proof in sandbox environment
+
+**Tasks:**
+- End-to-end test workflow:
+  1. Start fresh regtest node
+  2. Mine genesis + 100 blocks (coinbase maturity)
+  3. Create transaction spending mature coinbase
+  4. Submit transaction to mempool
+  5. Mine block including transaction
+  6. Verify UTXO set reflects spend
+  7. Stop node
+  8. Restart node
+  9. Verify all state persisted correctly
+- Test coinbase maturity:
+  - Attempt to spend immature coinbase (must fail)
+  - Wait 100 blocks, spend succeeds
+- Test chain reorganization:
+  - Mine competing chains
+  - Verify reorg to most-work chain
+  - Verify UTXO set reverts/applies correctly
+- Stress test:
+  - Mine 1000 blocks rapidly
+  - Create 100 transactions
+  - Verify performance acceptable
+- Document any issues found
+
+**Deliverables:** Regtest confidence achieved — full node works in sandbox
+
+---
+
+##### Session 9.6.5: Headers-First Sync Integration
+**Objective:** We can learn the chain from the network
+
+**Tasks:**
+- Wire sync manager to consensus engine:
+  - Validate downloaded headers via `consensus_validate_header()`
+  - Track header chain with accumulated work
+  - Identify best chain among multiple peers
+- Implement header chain storage:
+  - Store validated headers in block index
+  - Track validation status (header-only vs full block)
+  - Enable efficient header chain traversal
+- Wire block download to validation:
+  - Queue blocks for download based on header chain
+  - Download from multiple peers in parallel
+  - Validate full blocks as they arrive
+  - Handle out-of-order arrival
+- Update `getblockchaininfo` with sync progress:
+  - `headers`: number of validated headers
+  - `blocks`: number of fully validated blocks
+  - `verificationprogress`: blocks / headers ratio
+  - `initialblockdownload`: true if syncing
+- Test headers-first sync:
+  - Connect to testnet
+  - Verify headers download and validate
+  - Verify sync progress reported correctly
+
+**Deliverables:** Headers-first sync operational
+
+**Reference:** Whitepaper §7.3 (Initial Block Download)
+
+---
+
+##### Session 9.6.6: Testnet Validation
+**Objective:** We validate real Bitcoin blocks on testnet
+
+**Tasks:**
+- Implement testnet network parameters:
+  - Testnet genesis block
+  - Testnet magic bytes
+  - Testnet DNS seeds
+  - Testnet difficulty rules (including reset rule)
+- Enable full block validation on testnet:
+  - Download blocks via headers-first sync
+  - Validate each block through consensus engine
+  - Apply to UTXO set
+  - Store in block files and index
+- Monitor validation:
+  - Log validation progress
+  - Track blocks/second rate
+  - Identify any validation failures
+- Sync significant portion of testnet:
+  - Target: 10,000+ blocks with full validation
+  - Verify no consensus failures
+  - Verify UTXO set grows correctly
+- Test persistence:
+  - Stop mid-sync
+  - Restart and resume
+  - Verify seamless continuation
+
+**Deliverables:** Testnet validation proven — we match testnet consensus
+
+---
+
+##### Session 9.6.7: Mainnet Readiness
+**Objective:** Ready for the real chain
+
+**Tasks:**
+- Verify mainnet parameters:
+  - Mainnet genesis block (correct hash, correct coinbase)
+  - Mainnet magic bytes (0xf9beb4d9)
+  - Mainnet DNS seeds
+  - Mainnet difficulty (no reset rule)
+- Test mainnet connection:
+  - Connect to mainnet peers
+  - Complete handshake
+  - Receive and validate headers
+- Begin mainnet IBD:
+  - Download initial headers
+  - Begin block download and validation
+  - Validate first 1,000+ blocks
+  - Verify all pass consensus
+- Document performance:
+  - Blocks per second rate
+  - Memory usage
+  - Disk I/O patterns
+  - Estimated full sync time
+- Ensure graceful handling of mainnet scale:
+  - Large blocks (up to 4MB weight)
+  - High transaction counts
+  - Complex scripts (Taproot, etc.)
+- Document any limitations or known issues
+
+**Deliverables:** Mainnet-capable node, ready for Phase 11 full sync testing
+
+**Note:** This session completes Phase 9. The node is now a fully operational validating node capable of syncing mainnet. Phase 11 will perform the complete mainnet sync and hardening.
 
 ---
 
@@ -1352,7 +1599,15 @@ Use this section to track completion status. Update after each session.
 | 9.3 RPC Interface | Complete | Dec 2025 — rpc.h/c with full JSON-RPC 1.0 server: minimal recursive-descent JSON parser, JSON response builder, HTTP/1.0 request handling, 7 RPC methods (getblockchaininfo, getblock, getblockhash, getrawtransaction, sendrawtransaction, getblocktemplate, submitblock), hash formatting with reversed byte order for display, hex encoding/decoding utilities, completed read_net_addr for addr message deserialization, 39/39 tests pass |
 | 9.4 Logging | Complete | Dec 2025 — log.h/c, fixed-format machine-parseable logging, timestamp with milliseconds, log levels (ERROR/WARN/INFO/DEBUG), component-based filtering (MAIN/NET/P2P/CONS/SYNC/POOL/RPC/DB/STOR/CRYP), file output support, thread-safe with platform mutex, plat_mutex_alloc/free added to platform API, 28/28 tests pass |
 | 9.5 Observer Mode | Complete | Dec 2025 — --observe CLI flag, argument parsing (--datadir, --port, --rpcport), peer discovery via DNS seeds, ring buffers for blocks (100) and transactions (1000), observer RPC methods (getobserverstats, getobservedblocks, getobservedtxs), non-blocking sockets, CORS preflight support, complete peer handshake, INV message parsing, graceful shutdown, connects to Bitcoin mainnet and observes live network traffic |
-| 9.6 Full Node Integration | Not Started | Completes full validating node with all components wired |
+| **9.6 Full Node Integration** | | **8 sub-sessions for critical integration work** |
+| 9.6.0 Storage Foundation | Not Started | Chain state persistence, resumable sync |
+| 9.6.1 Block Pipeline | Not Started | Block validation → storage flow |
+| 9.6.2 Transaction Pipeline | Not Started | Transaction validation → mempool flow |
+| 9.6.3 Regtest Mining | Not Started | getblocktemplate/submitblock for testing |
+| 9.6.4 Regtest Integration | Not Started | Full workflow proof in sandbox |
+| 9.6.5 Headers-First Sync | Not Started | Sync manager + consensus integration |
+| 9.6.6 Testnet Validation | Not Started | Real block validation on testnet |
+| 9.6.7 Mainnet Readiness | Not Started | Ready for Phase 11 full sync |
 
 ### Phase 10: Mining Interface
 | Session | Status | Notes |
