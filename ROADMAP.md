@@ -51,7 +51,7 @@ bitcoin-echo/             ← Sibling folder (C implementation, to be created)
 - [x] Core types and headers defined (Phase 0 complete)
 
 ### In Progress
-- [ ] Phase 9: Application Layer (Session 9.6 remaining — Full Node Integration, 8 sub-sessions: 9.6.0-9.6.7)
+- [ ] Phase 9: Application Layer (Session 9.6 remaining — Full Node Integration, 7 sub-sessions: 9.6.1-9.6.7)
 
 ### Not Yet Started
 - [ ] Phase 10: Mining Interface
@@ -1600,7 +1600,7 @@ Use this section to track completion status. Update after each session.
 | 9.4 Logging | Complete | Dec 2025 — log.h/c, fixed-format machine-parseable logging, timestamp with milliseconds, log levels (ERROR/WARN/INFO/DEBUG), component-based filtering (MAIN/NET/P2P/CONS/SYNC/POOL/RPC/DB/STOR/CRYP), file output support, thread-safe with platform mutex, plat_mutex_alloc/free added to platform API, 28/28 tests pass |
 | 9.5 Observer Mode | Complete | Dec 2025 — --observe CLI flag, argument parsing (--datadir, --port, --rpcport), peer discovery via DNS seeds, ring buffers for blocks (100) and transactions (1000), observer RPC methods (getobserverstats, getobservedblocks, getobservedtxs), non-blocking sockets, CORS preflight support, complete peer handshake, INV message parsing, graceful shutdown, connects to Bitcoin mainnet and observes live network traffic |
 | **9.6 Full Node Integration** | | **8 sub-sessions for critical integration work** |
-| 9.6.0 Storage Foundation | Not Started | Chain state persistence, resumable sync |
+| 9.6.0 Storage Foundation | Complete | Dec 2025 — Chain state restoration from block_index_db on startup (node_restore_chain_state), block application with persistence (node_apply_block updates consensus engine + block files + block_index_db + utxo_db atomically), submitblock RPC uses node_apply_block, getblockchaininfo reports restored chain state, 4 new storage foundation tests (chain restoration across restarts, UTXO persistence, multiple restart cycles), 1023/1023 tests pass |
 | 9.6.1 Block Pipeline | Not Started | Block validation → storage flow |
 | 9.6.2 Transaction Pipeline | Not Started | Transaction validation → mempool flow |
 | 9.6.3 Regtest Mining | Not Started | getblocktemplate/submitblock for testing |
