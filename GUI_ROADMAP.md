@@ -119,7 +119,7 @@ The GUI combines two data sources for a complete picture:
 
 ### Architecture Rework (Session 2.1R)
 
-**Status:** Pending — Required before continuing Phase 2
+**Status:** ✅ Complete (Dec 2025)
 
 **Problem Identified:**
 The current implementation has a fundamental UX issue: the Welcome/Onboarding flow gives users the impression they're configuring the node when they're actually just telling the GUI what they *intend* to do. This creates two sources of truth:
@@ -751,9 +751,9 @@ Each session is designed to be completable in a single focused chat session.
 | 2.1 First-Run Onboarding | ✅ Complete | Dec 2025 — Welcome screen, Observe/Validate choice, ValidateInfo step, localStorage persistence |
 | 2.1+ Three-Option Onboarding | ✅ Complete | Dec 2025 — Enhanced to Observe / Validate Lite (~10 GB) / Validate Archival (~600 GB), storage estimates, CLI command display |
 | 2.2 Sync View — The Journey | ✅ Complete | Dec 2025 — Dual-timeline visualization, progress bar 2009→present, validation stats, performance metrics (blk/s, ETA), session tracking, storage info |
-| **2.1R Architecture Rework** | **← NEXT** | Rearchitect: node as source of truth, welcome becomes guide, remove false config UX |
-| 2.3 Historical Milestones | Blocked | Awaiting 2.1R |
-| 2.4 Resume & Completion | Blocked | Awaiting 2.1R |
+| **2.1R Architecture Rework** | ✅ Complete | Dec 2025 — nodeMode store queries node, showGuide replaces selectedMode, Welcome becomes educational overlay, help (?) icon in sidebar |
+| 2.3 Historical Milestones | Not Started | |
+| 2.4 Resume & Completion | Not Started | |
 | 2.5 Mode Detection | Absorbed | Merged into 2.1R — mode detection is now the foundation |
 
 ### Phase 3: Chain Explorer
@@ -801,8 +801,8 @@ NODE                                  GUI
 9.6.1 Block Pipeline ✅      ──────►   2.1 Onboarding Flow ✅
 9.6.2 Pruning Support ✅     ──────►   2.1+ Three-Option Onboarding ✅
 9.6.3 Transaction Pipeline ✅ ─────►   2.2 Sync View ✅
-                              ─────►   2.1R Architecture Rework ← NOW
-9.6.4 Regtest Mining         ──────►   2.3 Milestones
+                              ─────►   2.1R Architecture Rework ✅
+9.6.4 Regtest Mining ← NOW   ──────►   2.3 Milestones
 9.6.5 Regtest & Pruning      ──────►   2.4 Resume & Completion
 9.6.6 Headers-First Sync     ──────►   2.5 Mode Detection
 9.6.7 Testnet & Mainnet      ──────►   3.1-3.4 Chain Explorer
