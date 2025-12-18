@@ -1142,7 +1142,54 @@ Each unit is designed to be completable in a single focused chat session. Units 
 
 ---
 
-##### Session 9.6.2: Transaction Processing Pipeline
+##### Session 9.6.2: Pruning Support
+**Objective:** Enable lite mode — full validation with minimal storage
+
+**Background:** A key barrier to education and adoption is the ~600 GB storage requirement for a full archival node. Pruned nodes validate every block identically to archival nodes, but discard old block data after validation, keeping only the UTXO set and recent blocks. This enables the full "Don't trust. Verify." experience with ~10 GB storage instead of ~600 GB.
+
+**Tasks:**
+- Add `--prune=<MB>` CLI flag:
+  - 0 = no pruning (archival mode, default)
+  - Positive value = target size in MB for block storage
+  - Minimum: 550 MB (must keep 550+ blocks for reorg safety)
+- Implement block file pruning:
+  - Track which blocks are in each block file
+  - After validating block N, mark block (N - 550) as prunable
+  - Delete block files when all their blocks are prunable
+  - Update block index to mark blocks as pruned (data unavailable)
+- Add pruning height tracking:
+  - Store `pruned_height` in block index database
+  - Track earliest block with available data
+  - Enable queries for "do we have block X data?"
+- Update service bit advertising:
+  - When pruned: do NOT advertise `NODE_NETWORK` (service bit 1)
+  - Pruned nodes cannot serve historical blocks to peers
+  - Still advertise `NODE_WITNESS` if applicable
+- Handle block requests gracefully:
+  - If peer requests pruned block, send `notfound`
+  - Log when unable to serve due to pruning
+- Update `getblockchaininfo` RPC:
+  - Add `pruned`: true/false
+  - Add `pruneheight`: lowest block with data (if pruned)
+  - Add `prune_target_size`: configured target (if pruned)
+- Implement `pruneblockchain` RPC (optional, for manual pruning):
+  - `pruneblockchain <height>` — prune up to specified height
+  - Return actual pruned height
+- Test pruning:
+  - Start node with `--prune=1000`
+  - Sync past 1000 blocks
+  - Verify old block files deleted
+  - Verify UTXO set intact and correct
+  - Verify `getblockchaininfo` reports pruning status
+  - Verify node rejects requests for pruned blocks
+
+**Deliverables:** Working pruned node mode — same security, 1/60th the storage
+
+**Note:** Pruning is a storage optimization only. Security is identical to archival mode because every block is fully validated before being discarded. The UTXO set (which is all that's needed to validate new blocks) is always complete.
+
+---
+
+##### Session 9.6.3: Transaction Processing Pipeline
 **Objective:** Transactions flow from network through validation to mempool
 
 **Tasks:**
@@ -1178,7 +1225,7 @@ Each unit is designed to be completable in a single focused chat session. Units 
 
 ---
 
-##### Session 9.6.3: Regtest Mining
+##### Session 9.6.4: Regtest Mining
 **Objective:** We can create blocks in our sandbox (pulled forward from Phase 10)
 
 **Background:** Testing the full node requires the ability to create blocks. Rather than wait for Phase 10, we implement minimal mining support now to enable regtest testing. This is not the full mining interface—just enough to test.
@@ -1220,11 +1267,11 @@ Each unit is designed to be completable in a single focused chat session. Units 
 
 ---
 
-##### Session 9.6.4: Regtest Integration Testing
-**Objective:** Full workflow proof in sandbox environment
+##### Session 9.6.5: Regtest & Pruning Integration Testing
+**Objective:** Full workflow proof including pruning in sandbox environment
 
 **Tasks:**
-- End-to-end test workflow:
+- End-to-end test workflow (archival mode):
   1. Start fresh regtest node
   2. Mine genesis + 100 blocks (coinbase maturity)
   3. Create transaction spending mature coinbase
@@ -1234,24 +1281,33 @@ Each unit is designed to be completable in a single focused chat session. Units 
   7. Stop node
   8. Restart node
   9. Verify all state persisted correctly
+- End-to-end test workflow (pruned mode):
+  1. Start fresh regtest node with `--prune=10`
+  2. Mine 1000+ blocks
+  3. Verify old block files deleted
+  4. Verify UTXO set correct
+  5. Create and mine transactions
+  6. Verify pruning continues as chain grows
+  7. Stop and restart, verify state intact
 - Test coinbase maturity:
   - Attempt to spend immature coinbase (must fail)
   - Wait 100 blocks, spend succeeds
-- Test chain reorganization:
+- Test chain reorganization (both modes):
   - Mine competing chains
   - Verify reorg to most-work chain
   - Verify UTXO set reverts/applies correctly
+  - Verify pruning handles reorgs safely (keeps 550+ blocks)
 - Stress test:
   - Mine 1000 blocks rapidly
   - Create 100 transactions
-  - Verify performance acceptable
+  - Verify performance acceptable in both modes
 - Document any issues found
 
-**Deliverables:** Regtest confidence achieved — full node works in sandbox
+**Deliverables:** Regtest confidence achieved — full node works in sandbox (archival and pruned modes)
 
 ---
 
-##### Session 9.6.5: Headers-First Sync Integration
+##### Session 9.6.6: Headers-First Sync Integration
 **Objective:** We can learn the chain from the network
 
 **Tasks:**
@@ -1268,24 +1324,30 @@ Each unit is designed to be completable in a single focused chat session. Units 
   - Download from multiple peers in parallel
   - Validate full blocks as they arrive
   - Handle out-of-order arrival
+- Integrate pruning with sync:
+  - If pruning enabled, delete old blocks during IBD
+  - Maintain 550+ block buffer for safety
+  - Log pruning progress alongside sync progress
 - Update `getblockchaininfo` with sync progress:
   - `headers`: number of validated headers
   - `blocks`: number of fully validated blocks
   - `verificationprogress`: blocks / headers ratio
   - `initialblockdownload`: true if syncing
+  - `pruned`, `pruneheight`: pruning status
 - Test headers-first sync:
   - Connect to testnet
   - Verify headers download and validate
   - Verify sync progress reported correctly
+  - Test with both archival and pruned modes
 
-**Deliverables:** Headers-first sync operational
+**Deliverables:** Headers-first sync operational (with pruning support)
 
 **Reference:** Whitepaper §7.3 (Initial Block Download)
 
 ---
 
-##### Session 9.6.6: Testnet Validation
-**Objective:** We validate real Bitcoin blocks on testnet
+##### Session 9.6.7: Testnet & Mainnet Validation
+**Objective:** Validate real Bitcoin blocks on testnet and mainnet
 
 **Tasks:**
 - Implement testnet network parameters:
@@ -1297,56 +1359,36 @@ Each unit is designed to be completable in a single focused chat session. Units 
   - Download blocks via headers-first sync
   - Validate each block through consensus engine
   - Apply to UTXO set
-  - Store in block files and index
-- Monitor validation:
-  - Log validation progress
-  - Track blocks/second rate
-  - Identify any validation failures
+  - Store in block files (or prune if configured)
 - Sync significant portion of testnet:
   - Target: 10,000+ blocks with full validation
+  - Test both archival and pruned modes
   - Verify no consensus failures
   - Verify UTXO set grows correctly
-- Test persistence:
-  - Stop mid-sync
-  - Restart and resume
-  - Verify seamless continuation
-
-**Deliverables:** Testnet validation proven — we match testnet consensus
-
----
-
-##### Session 9.6.7: Mainnet Readiness
-**Objective:** Ready for the real chain
-
-**Tasks:**
 - Verify mainnet parameters:
   - Mainnet genesis block (correct hash, correct coinbase)
   - Mainnet magic bytes (0xf9beb4d9)
   - Mainnet DNS seeds
   - Mainnet difficulty (no reset rule)
-- Test mainnet connection:
-  - Connect to mainnet peers
-  - Complete handshake
-  - Receive and validate headers
 - Begin mainnet IBD:
   - Download initial headers
   - Begin block download and validation
-  - Validate first 1,000+ blocks
+  - Validate first 10,000+ blocks
   - Verify all pass consensus
+  - Test with `--prune=10000` (10 GB) for practical demo
 - Document performance:
   - Blocks per second rate
   - Memory usage
-  - Disk I/O patterns
-  - Estimated full sync time
+  - Disk usage (archival vs pruned)
+  - Estimated full sync time for each mode
 - Ensure graceful handling of mainnet scale:
   - Large blocks (up to 4MB weight)
   - High transaction counts
   - Complex scripts (Taproot, etc.)
-- Document any limitations or known issues
 
-**Deliverables:** Mainnet-capable node, ready for Phase 11 full sync testing
+**Deliverables:** Mainnet-capable node (archival and pruned modes), ready for Phase 11 full sync testing
 
-**Note:** This session completes Phase 9. The node is now a fully operational validating node capable of syncing mainnet. Phase 11 will perform the complete mainnet sync and hardening.
+**Note:** This session completes Phase 9. The node is now a fully operational validating node capable of syncing mainnet in either archival or pruned mode. Phase 11 will perform comprehensive testing.
 
 ---
 
@@ -1602,12 +1644,12 @@ Use this section to track completion status. Update after each session.
 | **9.6 Full Node Integration** | | **8 sub-sessions for critical integration work** |
 | 9.6.0 Storage Foundation | Complete | Dec 2025 — Chain state restoration from block_index_db on startup (node_restore_chain_state), block application with persistence (node_apply_block updates consensus engine + block files + block_index_db + utxo_db atomically), submitblock RPC uses node_apply_block, getblockchaininfo reports restored chain state, 4 new storage foundation tests (chain restoration across restarts, UTXO persistence, multiple restart cycles), 1023/1023 tests pass |
 | 9.6.1 Block Pipeline | Complete | Dec 2025 — Sync manager initialization with block pipeline callbacks (node_init_sync), consensus validation wired to incoming blocks via sync_cb_validate_and_apply_block callback, invalid block tracking ring buffer (1000 blocks) to avoid re-download, block relay after validation (INV broadcast to peers), graceful validation failure handling with detailed logging (error type, failing tx/input index), public API for invalid block checks (node_is_block_invalid, node_get_invalid_block_count, node_process_received_block), 8 new block pipeline tests, 1031/1031 tests pass |
-| 9.6.2 Transaction Pipeline | Not Started | Transaction validation → mempool flow |
-| 9.6.3 Regtest Mining | Not Started | getblocktemplate/submitblock for testing |
-| 9.6.4 Regtest Integration | Not Started | Full workflow proof in sandbox |
-| 9.6.5 Headers-First Sync | Not Started | Sync manager + consensus integration |
-| 9.6.6 Testnet Validation | Not Started | Real block validation on testnet |
-| 9.6.7 Mainnet Readiness | Not Started | Ready for Phase 11 full sync |
+| 9.6.2 Pruning Support | Not Started | --prune flag, block file deletion, lite mode (~10 GB vs ~600 GB) |
+| 9.6.3 Transaction Pipeline | Not Started | Transaction validation → mempool flow |
+| 9.6.4 Regtest Mining | Not Started | getblocktemplate/submitblock for testing |
+| 9.6.5 Regtest & Pruning Integration | Not Started | Full workflow proof in sandbox (archival + pruned modes) |
+| 9.6.6 Headers-First Sync | Not Started | Sync manager + consensus integration (with pruning) |
+| 9.6.7 Testnet & Mainnet Validation | Not Started | Real block validation on testnet/mainnet |
 
 ### Phase 10: Mining Interface
 | Session | Status | Notes |

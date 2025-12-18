@@ -119,7 +119,7 @@ The GUI combines two data sources for a complete picture:
 
 ### Operating Modes
 
-The GUI supports two modes, detected automatically from node RPC:
+The GUI supports three modes, detected automatically from node RPC:
 
 **Observer Mode** — *"Watch Bitcoin Breathe"*
 - Node running with `--observe` flag
@@ -128,12 +128,19 @@ The GUI supports two modes, detected automatically from node RPC:
 - No validation, no storage
 - Instant gratification
 
-**Full Node Mode** — *"Validate Everything"*
+**Validate Lite Mode** — *"Full Validation, Minimal Storage"*
+- Node running with `--prune=<MB>` flag
+- Full consensus validation of every block
+- Pruned storage (~10 GB instead of ~600 GB)
+- Perfect for learning/educational use
+- See validation working in hours, not days
+
+**Validate Archival Mode** — *"The Complete Record"*
 - Node running normally (default)
-- Chain status, sync progress
-- UTXO set statistics
-- Mempool view
-- Full block explorer
+- Full validation + full block storage
+- Complete blockchain archive (~600 GB)
+- Serve historical blocks to other nodes
+- The gold standard
 
 ### View Structure
 
@@ -295,7 +302,7 @@ Each session is designed to be completable in a single focused chat session.
 
 ### Phase 2: Onboarding & Sync Experience
 
-#### Session 2.1: First-Run Onboarding Flow
+#### Session 2.1: First-Run Onboarding Flow ✅
 **Objective:** Welcome new users with clear choices
 
 **Tasks:**
@@ -311,6 +318,8 @@ Each session is designed to be completable in a single focused chat session.
 - Store user choice for future sessions
 
 **Deliverables:** Engaging first-run experience
+
+**Note:** Session 2.1 initially implements two-option onboarding (Observe/Validate). After Node Session 9.6.2 (Pruning Support), this will be enhanced to three options: Observe / Validate Lite (~10 GB pruned) / Validate Archival (~600 GB full). This enables users to experience full validation quickly without waiting days for a complete sync.
 
 ---
 
@@ -668,7 +677,7 @@ Each session is designed to be completable in a single focused chat session.
 ### Phase 2: Onboarding & Sync Experience
 | Session | Status | Notes |
 |---------|--------|-------|
-| 2.1 First-Run Onboarding | Not Started | |
+| 2.1 First-Run Onboarding | ✅ Complete | Dec 2025 — Welcome screen, Observe/Validate choice, ValidateInfo step, localStorage persistence |
 | 2.2 Sync View — The Journey | Not Started | |
 | 2.3 Historical Milestones | Not Started | |
 | 2.4 Resume & Completion | Not Started | |
@@ -713,31 +722,35 @@ Each session is designed to be completable in a single focused chat session.
 NODE                                  GUI
 ────                                  ───
                                       Phase 0: Foundation ✅
-                                      Phase 1.1-1.2: Observer ✅
+                                      Phase 1.1-1.3: Observer ✅
 
-9.6.0 Storage Foundation    ──────►   1.3 Connection Polish
-9.6.1 Block Pipeline        ──────►   2.1 Onboarding Flow
-9.6.2 Transaction Pipeline  ──────►   2.2 Sync View
-9.6.3 Regtest Mining        ──────►   2.3 Milestones
-9.6.4 Regtest Integration   ──────►   2.4 Resume & Completion
-9.6.5 Headers-First Sync    ──────►   2.5 Mode Detection
-9.6.6 Testnet Validation    ──────►   3.1-3.2 Block List/Detail
-9.6.7 Mainnet Readiness     ──────►   3.3-3.4 Tx Detail/Search
+9.6.0 Storage Foundation ✅  ──────►   1.3 Connection Polish ✅
+9.6.1 Block Pipeline ✅      ──────►   2.1 Onboarding Flow ✅
+9.6.2 Pruning Support        ──────►   2.1+ Three-Option Onboarding
+9.6.3 Transaction Pipeline   ──────►   2.2 Sync View
+9.6.4 Regtest Mining         ──────►   2.3 Milestones
+9.6.5 Regtest & Pruning      ──────►   2.4 Resume & Completion
+9.6.6 Headers-First Sync     ──────►   2.5 Mode Detection
+9.6.7 Testnet & Mainnet      ──────►   3.1-3.4 Chain Explorer
 
 Phase 10: Mining            ──────►   Phase 4: Network & Mempool
 Phase 11: Testing           ──────►   Phase 5: Power Tools
 Phase 12: Completion        ──────►   Phase 6: Polish & Release
 ```
 
+**Key insight:** 9.6.2 now prioritizes pruning support to enable "Validate Lite" mode. This allows users to experience full validation with ~10 GB storage instead of waiting for ~600 GB archival sync—critical for educational mission.
+
 ### Dependencies & Blockers
 
 | GUI Feature | Node Requirement | Status |
 |-------------|------------------|--------|
 | Observer Mode | Session 9.5 (`--observe`, observer RPCs) | ✅ Complete |
-| Sync Progress | Session 9.6.0+ (`getblockchaininfo` with sync data) | Pending |
-| Block Explorer | Session 9.6.1+ (`getblock`, validated blocks) | Pending |
-| Transaction View | Session 9.6.2+ (`getrawtransaction` with validation) | Pending |
-| Mempool View | Session 9.6.2+ (working mempool) | Pending |
+| Two-Option Onboarding | Session 9.6.1 (block pipeline) | ✅ Complete |
+| Three-Option Onboarding | Session 9.6.2 (`--prune` flag, pruned storage) | Pending |
+| Sync Progress | Session 9.6.3+ (`getblockchaininfo` with sync data) | Pending |
+| Block Explorer | Session 9.6.6+ (`getblock`, validated blocks) | Pending |
+| Transaction View | Session 9.6.3+ (`getrawtransaction` with validation) | Pending |
+| Mempool View | Session 9.6.3+ (working mempool) | Pending |
 | Network/Peers | `getpeerinfo` RPC (not yet implemented) | Blocked |
 | Log Streaming | Log streaming RPC (not yet implemented) | Blocked |
 
