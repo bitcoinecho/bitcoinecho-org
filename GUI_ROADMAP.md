@@ -679,7 +679,7 @@ Each session is designed to be completable in a single focused chat session.
 |---------|--------|-------|
 | 2.1 First-Run Onboarding | ✅ Complete | Dec 2025 — Welcome screen, Observe/Validate choice, ValidateInfo step, localStorage persistence |
 | 2.1+ Three-Option Onboarding | ✅ Complete | Dec 2025 — Enhanced to Observe / Validate Lite (~10 GB) / Validate Archival (~600 GB), storage estimates, CLI command display |
-| 2.2 Sync View — The Journey | Not Started | |
+| 2.2 Sync View — The Journey | ✅ Complete | Dec 2025 — Dual-timeline visualization, progress bar 2009→present, validation stats, performance metrics (blk/s, ETA), session tracking, storage info, currently validating indicator |
 | 2.3 Historical Milestones | Not Started | |
 | 2.4 Resume & Completion | Not Started | |
 | 2.5 Mode Detection | Not Started | |
