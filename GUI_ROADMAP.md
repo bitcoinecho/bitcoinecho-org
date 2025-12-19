@@ -423,7 +423,7 @@ Each session is designed to be completable in a single focused chat session.
 **Objective:** Educate users as they travel through Bitcoin history
 
 **Tasks:**
-- Create milestone data structure with historical events:
+- Create milestone data structure with historical events such as:
   - Block 0: Genesis — "The beginning. January 3, 2009."
   - Block 170: First transaction — Hal Finney receives 10 BTC
   - Block 210,000: First halving — Reward drops to 25 BTC
@@ -432,6 +432,7 @@ Each session is designed to be completable in a single focused chat session.
   - Block 630,000: Third halving — Reward drops to 6.25 BTC
   - Block 709,632: Taproot activates
   - Block 840,000: Fourth halving — Reward drops to 3.125 BTC
+- Perform a web search to find a more comprehensive list of events to consider
 - Create milestone notification component (appears as user passes each)
 - Create "Approaching milestone" indicator
 - Store milestones as static data (embedded, not fetched)
@@ -752,7 +753,7 @@ Each session is designed to be completable in a single focused chat session.
 | 2.1+ Three-Option Onboarding | ✅ Complete | Dec 2025 — Enhanced to Observe / Validate Lite (~10 GB) / Validate Archival (~600 GB), storage estimates, CLI command display |
 | 2.2 Sync View — The Journey | ✅ Complete | Dec 2025 — Dual-timeline visualization, progress bar 2009→present, validation stats, performance metrics (blk/s, ETA), session tracking, storage info |
 | **2.1R Architecture Rework** | ✅ Complete | Dec 2025 — nodeMode store queries node, showGuide replaces selectedMode, Welcome becomes educational overlay, help (?) icon in sidebar |
-| 2.3 Historical Milestones | Not Started | |
+| 2.3 Historical Milestones | ✅ Complete | Dec 2025 — 13 Bitcoin milestones (Genesis→Fourth Halving), notification/approaching components, integrated into sync page |
 | 2.4 Resume & Completion | Not Started | |
 | 2.5 Mode Detection | Absorbed | Merged into 2.1R — mode detection is now the foundation |
 
