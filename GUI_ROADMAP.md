@@ -754,7 +754,7 @@ Each session is designed to be completable in a single focused chat session.
 | 2.2 Sync View — The Journey | ✅ Complete | Dec 2025 — Dual-timeline visualization, progress bar 2009→present, validation stats, performance metrics (blk/s, ETA), session tracking, storage info |
 | **2.1R Architecture Rework** | ✅ Complete | Dec 2025 — nodeMode store queries node, showGuide replaces selectedMode, Welcome becomes educational overlay, help (?) icon in sidebar |
 | 2.3 Historical Milestones | ✅ Complete | Dec 2025 — 13 Bitcoin milestones (Genesis→Fourth Halving), notification/approaching components, integrated into sync page |
-| 2.4 Resume & Completion | Not Started | |
+| 2.4 Resume & Completion | ✅ Complete | Dec 2025 — Session history store (localStorage), WelcomeBack overlay for returning users, SyncComplete celebration, integrated session tracking |
 | 2.5 Mode Detection | Absorbed | Merged into 2.1R — mode detection is now the foundation |
 
 ### Phase 3: Chain Explorer
@@ -803,9 +803,9 @@ NODE                                  GUI
 9.6.2 Pruning Support ✅     ──────►   2.1+ Three-Option Onboarding ✅
 9.6.3 Transaction Pipeline ✅ ─────►   2.2 Sync View ✅
                               ─────►   2.1R Architecture Rework ✅
-9.6.4 Regtest Mining ← NOW   ──────►   2.3 Milestones
-9.6.5 Regtest & Pruning      ──────►   2.4 Resume & Completion
-9.6.6 Headers-First Sync     ──────►   2.5 Mode Detection
+9.6.4 Regtest Mining ✅      ──────►   2.3 Milestones ✅
+9.6.5 Regtest & Pruning ✅   ──────►   2.4 Resume & Completion ✅
+9.6.6 Headers-First Sync ← NOW ────►   2.5 Mode Detection (absorbed)
 9.6.7 Testnet & Mainnet      ──────►   3.1-3.4 Chain Explorer
 
 Phase 10: Mining            ──────►   Phase 4: Network & Mempool
