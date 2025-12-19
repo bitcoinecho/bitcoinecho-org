@@ -51,10 +51,13 @@ bitcoin-echo/             ← Sibling folder (C implementation, to be created)
 - [x] Core types and headers defined (Phase 0 complete)
 
 ### In Progress
-- [ ] Phase 9: Application Layer (Session 9.6 remaining — Full Node Integration, 7 sub-sessions: 9.6.1-9.6.7)
+- [ ] Phase 10: Mining Interface (2 sessions remaining)
+
+### Completed Phases
+- [x] Phase 0-8: Foundation through Protocol Layer
+- [x] Phase 9: Application Layer (9.1-9.6 complete, all 7 sub-sessions 9.6.0-9.6.7 complete, 1092 tests)
 
 ### Not Yet Started
-- [ ] Phase 10: Mining Interface
 - [ ] Phase 11: Testing & Hardening
 - [ ] Phase 12: Completion
 
@@ -1649,7 +1652,7 @@ Use this section to track completion status. Update after each session.
 | 9.6.4 Regtest Mining | Complete | Dec 2025 — mining.h/c, coinbase construction, BIP-34 height encoding, regtest genesis block (timestamp 1296688602, nonce 2), REGTEST_POWLIMIT_BITS (0x207fffff), getblocktemplate RPC with proper difficulty, mining_find_nonce(), Python mining script (scripts/regtest_miner.py), 16/16 tests pass, 1071/1071 total |
 | 9.6.5 Regtest & Pruning Integration | Complete | Dec 2025 — test_integration.c with 18 comprehensive tests, archival mode workflow (block creation, UTXO storage, block growth), pruned mode workflow (config, minimum target, block marking, validation components), persistence tests (node lifecycle create/destroy/create cycles), coinbase maturity tests (constant verification, is_coinbase flag, maturity calculation), chain reorganization tests (multiple chains tracked, best chain selection by chainwork), stress tests (1000 block entries, 1000 UTXOs, block storage writes, 5 restart cycles), 1089/1089 tests pass across 40 test suites |
 | 9.6.6 Headers-First Sync | Complete | Dec 2025 — send_getheaders and send_getdata_blocks callbacks added to sync_callbacks_t, sync_tick now sends getheaders via callback when in headers mode, batched getdata requests for block downloads, MSG_GETHEADERS handler responds to peer header requests (up to 2000 headers from block_index_db), sync_start called automatically when peers available, pruning integration during IBD (node_maybe_prune after block application), getblockchaininfo verified with all sync fields, 3 new callback tests, 1092/1092 tests pass across 40 test suites |
-| 9.6.7 Testnet & Mainnet Validation | Not Started | Real block validation on testnet/mainnet |
+| 9.6.7 Testnet & Mainnet Validation | Complete | Dec 2025 — Testnet genesis block constants (TESTNET_GENESIS_TIMESTAMP=1296688602, TESTNET_GENESIS_BITS=0x1d00ffff, TESTNET_GENESIS_NONCE=414098458), block_genesis_header_testnet() function, network-aware genesis validation (block_validate_genesis uses compile-time network selection with known genesis hashes for mainnet/testnet/regtest), testnet 20-minute difficulty rule (difficulty_testnet_20min_rule_applies, block_validate_difficulty accepts minimum difficulty when 20+ minutes since parent on testnet), TESTNET_20MIN_RULE_SECONDS constant, verified all three genesis hashes (mainnet: 000000000019d6...8ce26f, testnet: 000000000933ea...7f4943, regtest: 0f9188f13cb7b2...2206), builds for all networks (mainnet default, -DECHO_NETWORK_TESTNET, -DECHO_NETWORK_REGTEST), 1092/1092 tests pass |
 
 ### Phase 10: Mining Interface
 | Session | Status | Notes |
