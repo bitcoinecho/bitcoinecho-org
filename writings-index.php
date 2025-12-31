@@ -127,6 +127,14 @@ include __DIR__ . '/header.php';
     </div>
 
     <div class="doc-grid">
+        <a href="/writings/ibd-architecture" class="doc-card">
+            <span class="doc-card-label">Technical Deep-Dive</span>
+            <h2 class="doc-card-title">IBD Architecture</h2>
+            <p class="doc-card-description">
+                A comprehensive look at Bitcoin Echo's Initial Block Download system—headers-first sync, PULL-based work distribution, sticky batch racing, and adaptive peer management.
+            </p>
+            <div class="doc-card-meta">Published December 31, 2025</div>
+        </a>
         <a href="/writings/policy-vs-consensus" class="doc-card">
             <span class="doc-card-label">Position Paper</span>
             <h2 class="doc-card-title">Policy vs. Consensus</h2>

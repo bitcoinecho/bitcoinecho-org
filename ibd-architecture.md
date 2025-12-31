@@ -17,6 +17,9 @@
 9. [Constants and Tuning Parameters](#9-constants-and-tuning-parameters)
 10. [Comparison: Echo vs. Bitcoin Core vs. libbitcoin](#10-comparison-echo-vs-bitcoin-core-vs-libbitcoin)
 11. [Conclusion](#11-conclusion)
+- [Appendix A: Data Structures](#appendix-a-data-structures)
+- [Appendix B: Message Sequences](#appendix-b-message-sequences)
+- [Appendix C: References](#appendix-c-references)
 
 ---
 
@@ -1411,5 +1414,20 @@ NODE                     PEER A              PEER B              VALIDATION
 
 ---
 
+## Appendix C: References
+
+Bitcoin Echo's IBD architecture draws inspiration from two foundational implementations:
+
+### libbitcoin
+
+The [libbitcoin](https://libbitcoin.info/) project pioneered the PULL-based work distribution model and chase event system that Echo adapts. Its elegant approach to peer management — where peers request work rather than being assigned it — fundamentally shapes our download engine design.
+
+### Bitcoin Core
+
+[Bitcoin Core](https://bitcoincore.org/) remains the reference implementation against which all Bitcoin software is measured. Its battle-tested IBD approach, timeout constants, and protocol handling inform Echo's design decisions, even where we diverge (such as batch sizes and stall recovery strategies).
+
+---
+
 *Created: December 31st, 2025*
+
 *Bitcoin Echo Project*
