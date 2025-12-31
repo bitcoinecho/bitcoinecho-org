@@ -21,6 +21,7 @@ $docs = [
 // Writings routes (essays and analysis)
 $writings = [
     'writings/policy-vs-consensus' => ['file' => 'policy-vs-consensus.md', 'title' => 'Policy vs. Consensus'],
+    'writings/ibd-architecture'    => ['file' => 'ibd-architecture.md',    'title' => 'IBD Architecture'],
 ];
 
 // Standalone routes
