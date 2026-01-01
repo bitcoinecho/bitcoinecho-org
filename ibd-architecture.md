@@ -124,7 +124,7 @@ This document describes Bitcoin Echo's IBD architecture in exhaustive detail. Ou
    │  └─────────┘   └─────────┘   └─────────┘        │
    │                                                 │
    │  Sequential at validation tip (height H)        │
-   │  Parallel download of blocks H+1 to H+100000    │
+   │  Parallel download up to 1,600 blocks ahead     │
    └─────────────────────────────────────────────────┘
 ```
 
@@ -144,10 +144,13 @@ The argument parser extracts configuration:
 
 ```c
 typedef struct {
-    uint64_t prune_target_mb;    // 1024 MB in this case
-    char data_dir[PATH_MAX];     // ~/.bitcoin-echo/
-    log_level_t log_level;       // INFO by default
-    // ... additional options
+    char data_dir[512];          // Path to data directory
+    uint16_t port;               // P2P port (default: network-specific)
+    uint16_t rpc_port;           // RPC port (default: network-specific)
+    bool observer_mode;          // If true, skip consensus/storage
+    uint64_t prune_target_mb;    // Pruning target (0 = archival)
+    log_level_t log_level;       // Log verbosity (default: INFO)
+    bool assume_valid;           // Skip old script verification
 } node_config_t;
 ```
 
@@ -218,9 +221,10 @@ Block data is stored in Bitcoin Core-compatible `blk*.dat` files:
 When the node starts with an empty or incomplete chainstate, IBD mode is activated:
 
 ```c
-bool sync_is_ibd(sync_manager_t *mgr) {
-    // IBD if our validated tip is significantly behind best known header
-    return (best_header_height - validated_height) > IBD_THRESHOLD;
+bool sync_is_ibd(const sync_manager_t *mgr) {
+    // IBD = actively syncing headers or blocks
+    return mgr && (mgr->mode == SYNC_MODE_HEADERS ||
+                   mgr->mode == SYNC_MODE_BLOCKS);
 }
 ```
 
@@ -360,18 +364,19 @@ tip                   [0]  ← Most recent
 tip - 1               [1]
 tip - 2               [2]
 ...                   ...
-tip - 10              [10] ← Last consecutive (11 entries)
-tip - 11              [11] ← Still step=1, but step doubles after this
-tip - 13              [12] ← First at step=2
-tip - 15              [13]
-tip - 19              [14] ← Step doubles to 4
-tip - 23              [15]
+tip - 10              [10]
+tip - 11              [11] ← Last at step=1; step doubles after move
+tip - 12              [12] ← Moved step=1, then step doubles to 2
+tip - 14              [13] ← First move at step=2
+tip - 16              [14] ← Step doubles to 4 after move
+tip - 20              [15] ← First move at step=4
 ...                   ...
 genesis               [31] ← Always included
 
 Maximum locator size: 32 hashes
 
-Note: Step doubles every 2 entries after the first 10 entries.
+Note: `if (count > 10)` triggers step-doubling logic.
+Step doubles every 2 entries, applied to the NEXT move.
 ```
 
 This logarithmic structure allows peers to find the fork point efficiently regardless of how far back it is.
@@ -382,15 +387,15 @@ When we receive fewer than 2,000 headers (indicating peer has no more), and our 
 
 ```c
 if (headers_received < SYNC_MAX_HEADERS_PER_REQUEST &&
-    best_header_height > validated_height) {
+    best_header_height > tip_height) {
 
     // Flush all pending headers to database
     pending_headers_flush(mgr);
 
     // Transition to block download mode
     mgr->mode = SYNC_MODE_BLOCKS;
-    mgr->block_sync_start_time = current_time_ms();
-    mgr->block_sync_start_height = validated_height;
+    mgr->block_sync_start_time = plat_time_ms();
+    mgr->block_sync_start_height = tip_height;
 }
 ```
 
@@ -808,20 +813,19 @@ Height        Typical Size    Epoch    Base Timeout
 
 ### 6.5 Sticky Batch Resolution
 
-When validation progresses past the sticky height:
+When validation progresses past the sticky height, the sticky batch is removed from the queue. This logic is embedded within `download_mgr_check_stall()`:
 
 ```c
-void check_sticky_resolution(download_mgr_t *mgr, uint32_t validated_height) {
-    if (mgr->queue_head != NULL &&
-        mgr->queue_head->batch.sticky &&
-        mgr->queue_head->batch.sticky_height <= validated_height) {
+/* Within download_mgr_check_stall() */
+if (mgr->queue_head != NULL &&
+    mgr->queue_head->batch.sticky &&
+    mgr->queue_head->batch.sticky_height <= validated_height) {
 
-        // Sticky batch is no longer needed
-        batch_node_t *resolved = queue_pop_front(mgr);
-        batch_node_destroy(resolved);
-
-        log_debug("Sticky batch resolved at height %u", validated_height);
-    }
+    // Sticky batch is no longer needed
+    batch_node_t *resolved = queue_pop_front(mgr);
+    LOG_INFO("Sticky batch resolved (blocking height %u, current %u)",
+             resolved->batch.sticky_height, validated_height);
+    batch_node_destroy(resolved);
 }
 ```
 
@@ -1056,7 +1060,7 @@ Pruning is triggered periodically during sync:
                ▼
     ┌─────────────────────────────┐
     │ File max height >=         │
-    │ validated height?          │──── YES ────▶ Skip (unvalidated blocks)
+    │ (validated height - 550)?  │──── YES ────▶ Skip (within safety margin)
     └──────────┬──────────────────┘
                │ NO (safe to delete)
                ▼
@@ -1079,7 +1083,7 @@ Pruning is triggered periodically during sync:
     └─────────────────────┘
 ```
 
-**Critical safety check**: During IBD, blocks are downloaded ahead of validation. Before deleting any block file, we verify that all blocks in the file have been validated (file's max height < validated height). This prevents deleting blocks that validation still needs, which would cause an infinite retry loop.
+**Critical safety check**: During IBD, blocks are downloaded ahead of validation. Before deleting any block file, we verify that all blocks in the file are outside a 550-block safety margin from the validated tip (file's max height < validated height - 550). This margin ensures reorg safety and prevents deleting blocks that validation still needs.
 
 ### 8.4 Block Status Tracking
 
@@ -1104,9 +1108,9 @@ After pruning, a block has:
 
 This allows the node to know the block was valid without having the data.
 
-### 8.5 Interaction with Download Window
+### 8.5 Pruning and Download Parallelism
 
-Importantly, pruning does **not** limit the download window during IBD:
+Importantly, pruning does **not** limit download parallelism during IBD:
 
 ```
 COMMON MISCONCEPTION:
@@ -1117,12 +1121,14 @@ COMMON MISCONCEPTION:
 
 CORRECT BEHAVIOR:
 ─────────────────
-    Download window: 100,000 blocks ahead (same as archival)
-    Storage: Write all blocks to disk
-    Pruning: Delete old blocks periodically to stay under target
+    Download queue: Up to 1,600 blocks (200 batches × 8 blocks)
+    Storage: Write all blocks to disk as they arrive
+    Pruning: Delete old validated blocks to stay under target
 
     Result: Full parallelism, disk space bounded by prune target
 ```
+
+The download queue limit (1,600 blocks via `DOWNLOAD_MAX_BATCHES`) is the same for both pruned and archival modes. Pruning limits what we **store long-term**, not what we **download**.
 
 ---
 
@@ -1143,7 +1149,6 @@ CORRECT BEHAVIOR:
 #define HEADER_SLOW_THRESHOLD_MS         2000    // >2s = probe immediately
 
 /* sync.h - Block sync */
-#define SYNC_BLOCK_DOWNLOAD_WINDOW       100000  // Blocks to queue ahead
 #define SYNC_STALE_TIP_THRESHOLD_MS      1800000 // 30 minutes (stall abort)
 
 /* download_mgr.c - Stall detection (internal to download module) */
@@ -1159,7 +1164,7 @@ CORRECT BEHAVIOR:
 #define DOWNLOAD_BATCH_SIZE              8       // Blocks per batch
 #define DOWNLOAD_BATCH_SIZE_MAX          8       // Maximum batch size
 #define DOWNLOAD_MAX_BATCHES             200     // Queue capacity (1600 blocks)
-#define DOWNLOAD_MAX_PEERS               256     // Maximum tracked peers
+#define DOWNLOAD_MAX_PEERS               100     // Maximum tracked peers (= outbound limit)
 #define DOWNLOAD_PERF_WINDOW_MS          10000   // 10 second performance window
 #define DOWNLOAD_MIN_PEERS_TO_KEEP       3       // Never evict below this count
 ```
@@ -1237,7 +1242,7 @@ BITCOIN ECHO:
     Header sync: Single peer + periodic racing (best of both)
     Block sync: PULL model with 8-block batches + sticky racing
     Slow peers: Cooperative model - tolerate slow-but-working peers;
-                only disconnect truly stalled (0 B/s for 20+ seconds)
+                only disconnect truly stalled (0 B/s for 30+ seconds)
 ```
 
 ### 10.3 Performance Characteristics
@@ -1323,7 +1328,6 @@ struct sync_manager {
 
     /* Block sync */
     download_mgr_t *download_mgr;        // PULL-based work distribution
-    uint32_t download_window;            // How far ahead to queue (100K during IBD)
 
     /* Pending headers (deferred persistence) */
     pending_header_t *pending_headers;   // Queue during HEADERS mode
