@@ -577,7 +577,7 @@ $active_nav = $active_nav ?? null;
                     <li>
                         <a href="/writings"<?php echo $active_nav === 'writings' ? ' class="active"' : ''; ?>>Writings</a>
                         <div class="nav-dropdown">
-                            <a href="/writings/ibd-architecture">IBD Architecture</a>
+                            <!-- <a href="/writings/ibd-architecture">IBD Architecture</a> -->
                             <a href="/writings/policy-vs-consensus">Policy vs. Consensus</a>
                         </div>
                     </li>

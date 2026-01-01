@@ -44,7 +44,7 @@ This document describes Bitcoin Echo's IBD architecture in exhaustive detail. Ou
 | **Single-peer header racing** | Find fastest header peer without duplicate downloads |
 | **PULL-based work distribution** | Peers request work when ready, not when assigned |
 | **8-block atomic batches** | Balance parallelism against head-of-line blocking |
-| **Sticky batch racing** | Recover from slow peers without immediate disconnection |
+| **Sticky batch racing** | Recover from blocking peers cooperatively via redundancy |
 | **Epoch-based adaptive timeouts** | Early blocks are tiny; later blocks need more time |
 | **Deferred header persistence** | Batch ~1M header writes into single transaction |
 
@@ -360,15 +360,18 @@ tip                   [0]  ← Most recent
 tip - 1               [1]
 tip - 2               [2]
 ...                   ...
-tip - 9               [9]  ← Last consecutive
-tip - 11              [10] ← Start doubling
-tip - 15              [11]
-tip - 23              [12]
-tip - 39              [13]
+tip - 10              [10] ← Last consecutive (11 entries)
+tip - 11              [11] ← Still step=1, but step doubles after this
+tip - 13              [12] ← First at step=2
+tip - 15              [13]
+tip - 19              [14] ← Step doubles to 4
+tip - 23              [15]
 ...                   ...
 genesis               [31] ← Always included
 
 Maximum locator size: 32 hashes
+
+Note: Step doubles every 2 entries after the first 10 entries.
 ```
 
 This logarithmic structure allows peers to find the fork point efficiently regardless of how far back it is.
@@ -503,14 +506,20 @@ typedef struct {
 
 **Performance calculation** (every 10 seconds):
 ```c
-void update_peer_performance(peer_perf_t *perf) {
+static void update_peer_window(peer_perf_t *perf, uint64_t now) {
     uint64_t elapsed = now - perf->window_start_time;
     if (elapsed >= DOWNLOAD_PERF_WINDOW_MS) {
         perf->bytes_per_second = (float)perf->bytes_this_window /
                                  ((float)elapsed / 1000.0f);
+
+        /* Only mark as "reported" if they actually delivered bytes */
+        if (perf->bytes_per_second > 0.0f) {
+            perf->has_reported = true;
+        }
+
+        /* Reset window */
         perf->bytes_this_window = 0;
         perf->window_start_time = now;
-        perf->has_reported = true;
     }
 }
 ```
@@ -562,25 +571,28 @@ void update_peer_performance(peer_perf_t *perf) {
                         └─────────────────────┘
 ```
 
-#### `peer_starved()` — Peer wants work but queue is empty
+#### Empty Queue Handling — Cooperative Model
 
-When a peer requests work but the queue is empty yet other peers have work inflight:
+When a peer requests work but the queue is empty:
 
 ```c
-void download_mgr_peer_starved(download_mgr_t *mgr, peer_t *peer) {
-    // Find the peer with the oldest assigned batch
-    peer_perf_t *oldest = find_oldest_batch_holder(mgr);
+bool download_mgr_peer_request_work(download_mgr_t *mgr, peer_t *peer) {
+    if (mgr->queue_head == NULL) {
+        /* No work available - peer simply waits */
+        return false;
+    }
 
-    // Take their batch and return to queue
-    batch_node_t *stolen = steal_batch(oldest);
-    queue_push_front(mgr, stolen);  // High priority
-
-    // The slow peer keeps working on their (now-stolen) batch
-    // If they deliver, we accept it; if not, another peer will
+    /* Assign work to peer... */
 }
 ```
 
-**Philosophy**: Slow peers still contribute. More slow peers beats fewer fast peers for parallelism. We steal work to unblock fast peers, but don't disconnect slow-but-working peers.
+**Philosophy**: Cooperative, not punitive. When a peer finds no available work:
+- They simply wait for more work to be queued (returns `false`)
+- No other peers are penalized or disconnected
+- Work is only returned to the queue when a peer is explicitly removed
+- The sticky batch mechanism adds redundancy for blocking blocks without punishing anyone
+
+This differs from libbitcoin's "sacrifice" model. Our approach prioritizes peer retention over aggressive throughput optimization. Slow-but-working peers still contribute blocks, and connection establishment is not free. Only truly stalled peers (0 B/s for extended periods) are disconnected via the periodic performance check.
 
 ### 5.6 Block Receipt Flow
 
@@ -756,23 +768,21 @@ RESOLUTION:
                                        │
                                        ▼
                               ┌─────────────────┐
-                              │ Blocker active? │
-                              │ (delivered in   │
-                              │  last 10s)      │
+                              │ Create sticky   │
+                              │ batch for racing│
+                              │ (cooperative)   │
                               └────────┬────────┘
                                        │
-                               ┌───────┴───────┐
-                               │               │
-                               ▼               ▼
-                            ┌──────┐        ┌─────┐
-                            │ YES  │        │ NO  │
-                            │      │        │     │
-                            │RACE  │        │KILL │
-                            │      │        │     │
-                            │Create│        │Steal│
-                            │sticky│        │batch│
-                            │batch │        │     │
-                            └──────┘        └─────┘
+                                       ▼
+                              ┌─────────────────┐
+                              │ Other idle peers│
+                              │ can clone sticky│
+                              │ and race for    │
+                              │ blocking block  │
+                              └─────────────────┘
+
+Note: Stalled peers (0 B/s) are disconnected separately
+via download_mgr_check_performance(), not here.
 ```
 
 ### 6.4 Why Epoch-Based Timeouts?
@@ -865,10 +875,7 @@ FEEDBACK EVENTS:
     ┌─────────────────────┐
     │   CHASE_STARVED     │  Validation needs more blocks
     └──────────┬──────────┘  → Trigger peer_request_work()
-               │
-    ┌─────────────────────┐
-    │   CHASE_SPLIT       │  Validation stalled on slow peer
-    └──────────┬──────────┘  → Trigger sticky batch or disconnect
+                              (peer waits if queue empty)
 ```
 
 ### 7.2 Validation Stages
@@ -1128,8 +1135,10 @@ CORRECT BEHAVIOR:
 #define SYNC_MAX_HEADERS_PER_REQUEST     2000    // Headers per getheaders
 #define SYNC_MAX_LOCATOR_HASHES          32      // Block locator size
 #define SYNC_HEADERS_TIMEOUT_MS          30000   // 30 seconds
-#define HEADER_RETRY_INTERVAL_MS         5000    // 5 seconds between retries
-#define HEADER_REFRESH_INTERVAL_MS       30000   // Check for new headers
+#define SYNC_HEADER_RETRY_INTERVAL_MS    5000    // 5 seconds between retries
+#define SYNC_HEADER_REFRESH_INTERVAL_MS  30000   // Check for new headers
+
+/* sync.c - Header peer racing (internal to sync module) */
 #define HEADER_PROBE_INTERVAL            3       // Race every 3 batches
 #define HEADER_SLOW_THRESHOLD_MS         2000    // >2s = probe immediately
 
@@ -1137,7 +1146,7 @@ CORRECT BEHAVIOR:
 #define SYNC_BLOCK_DOWNLOAD_WINDOW       100000  // Blocks to queue ahead
 #define SYNC_STALE_TIP_THRESHOLD_MS      1800000 // 30 minutes (stall abort)
 
-/* Stall detection */
+/* download_mgr.c - Stall detection (internal to download module) */
 #define STALL_EPOCH_BLOCKS               210000  // Blocks per halving epoch
 #define STALL_MS_PER_EPOCH               1000    // 1 second per epoch
 #define STALL_MAX_TIMEOUT_MS             64000   // 64 second maximum
@@ -1177,7 +1186,7 @@ Note: We deliberately avoid speed-based peer eviction. Slow-but-working peers st
 | Validation stall (epoch 0) | 1s | 2× per retry | 64s |
 | Validation stall (epoch 1) | 2s | 2× per retry | 64s |
 | Validation stall (epoch 4) | 5s | 2× per retry | 64s |
-| Peer zero delivery | 20s | None | Disconnect |
+| Peer zero delivery | 30s | None | Disconnect |
 
 ---
 
@@ -1191,7 +1200,7 @@ Note: We deliberately avoid speed-based peer eviction. Slow-but-working peers st
 | **Header Duplicates** | Accepted (wasteful) | None | None |
 | **Block Batch Size** | 16 | Variable | 8 (fixed) |
 | **Work Distribution** | PUSH (coordinator assigns) | PULL (peers request) | PULL + sticky racing |
-| **Slow Peer Handling** | Cooldown period | Immediate disconnect | Tolerate; steal work if needed |
+| **Slow Peer Handling** | Cooldown period | Immediate disconnect | Cooperative: only disconnect truly stalled (0 B/s) |
 | **Stall Timeout** | Fixed 2s | Adaptive | Epoch-based adaptive |
 | **Header Persistence** | Immediate | Deferred | Deferred (batched) |
 | **Event System** | Validation signals | Chase events | Chase events |
@@ -1227,7 +1236,8 @@ BITCOIN ECHO:
 
     Header sync: Single peer + periodic racing (best of both)
     Block sync: PULL model with 8-block batches + sticky racing
-    Slow peers: Tolerate and keep (parallelism > speed); steal work if blocking
+    Slow peers: Cooperative model - tolerate slow-but-working peers;
+                only disconnect truly stalled (0 B/s for 20+ seconds)
 ```
 
 ### 10.3 Performance Characteristics
@@ -1265,7 +1275,7 @@ The architecture embodies several key principles:
 
 **Prefer racing to waiting**: When uncertain if a peer will deliver, start a race rather than waiting for timeout.
 
-**Preserve peer investment**: A connected peer represents handshake cost, version exchange, and established state. Don't discard this investment until racing proves the peer is truly slow.
+**Cooperative, not punitive**: A connected peer represents handshake cost, version exchange, and established state. Slow-but-working peers still contribute blocks. Only disconnect truly stalled peers (0 B/s for extended periods). Use sticky batches to add redundancy for blocking blocks without punishing anyone.
 
 **Adapt to the data**: Early Bitcoin blocks are tiny; modern blocks are megabytes. Timeouts and expectations should reflect this reality.
 
@@ -1283,32 +1293,40 @@ This IBD architecture, once proven through extended mainnet testing and security
 
 ## Appendix A: Data Structures
 
+*Note: These structs show key architectural fields. See source files for complete definitions including additional timing, stats, and rate-limiting fields.*
+
 ### A.1 Sync Manager State
+
+Defined in `src/protocol/sync.c`. Coordinates headers-first sync and delegates block downloads to the download manager.
 
 ```c
 struct sync_manager {
     /* Core state */
     chainstate_t *chainstate;
     sync_callbacks_t callbacks;
-    sync_mode_t mode;                    // IDLE, HEADERS, BLOCKS, DONE
+    sync_mode_t mode;                    // IDLE, HEADERS, BLOCKS, DONE, STALLED
 
     /* Peer tracking */
-    peer_sync_state_t peers[128];        // Per-peer sync state
+    peer_sync_state_t peers[SYNC_MAX_PEERS];  // 100 peers (matches libbitcoin-node)
     size_t peer_count;
 
-    /* Header sync */
+    /* Best known header chain */
+    block_index_t *best_header;          // Tip of header chain (may be ahead of blocks)
+
+    /* Header sync (simple model with periodic probing) */
     bool have_header_peer;               // Active peer selected?
     size_t active_header_peer_idx;       // Index of active peer
-    uint32_t header_batch_count;         // Batches received
-    uint64_t last_header_response_ms;    // For slow detection
-    size_t probe_peer_idx;               // Current probe target
-    uint64_t probe_sent_time;            // When probe sent
+    uint32_t header_batch_count;         // Batches received from active peer
+    uint64_t last_header_response_ms;    // Response time of last batch
+    size_t probe_peer_idx;               // Peer being probed (SIZE_MAX if none)
+    uint64_t probe_sent_time;            // When probe was sent
 
     /* Block sync */
     download_mgr_t *download_mgr;        // PULL-based work distribution
+    uint32_t download_window;            // How far ahead to queue (100K during IBD)
 
     /* Pending headers (deferred persistence) */
-    pending_header_t *pending_headers;
+    pending_header_t *pending_headers;   // Queue during HEADERS mode
     size_t pending_headers_count;
     size_t pending_headers_capacity;
 
@@ -1317,9 +1335,9 @@ struct sync_manager {
     uint64_t block_sync_start_time;
     uint32_t block_sync_start_height;
     uint64_t last_progress_time;
-    uint64_t stalling_timeout_ms;
+    uint64_t stalling_timeout_ms;        // Adaptive timeout (2s → 64s max)
 
-    /* Chase integration */
+    /* Chase integration (libbitcoin-style event-driven validation) */
     chase_dispatcher_t *dispatcher;
     chase_subscription_t *subscription;
 };
@@ -1327,28 +1345,32 @@ struct sync_manager {
 
 ### A.2 Download Manager State
 
+Defined in `src/protocol/download_mgr.c`. Implements PULL-based work distribution with batch assignments.
+
 ```c
 struct download_mgr {
     download_callbacks_t callbacks;
 
-    /* Work queue */
-    batch_node_t *queue_head;
-    batch_node_t *queue_tail;
+    /* Work queue (doubly-linked list of batches) */
+    batch_node_t *queue_head;            // Front of queue (oldest)
+    batch_node_t *queue_tail;            // Back of queue (newest)
     size_t queue_count;
 
     /* Height tracking */
-    uint32_t lowest_pending_height;
-    uint32_t highest_queued_height;
+    uint32_t lowest_pending_height;      // Lowest height in queue/assigned
+    uint32_t highest_queued_height;      // Highest height added
 
     /* Peer performance */
-    peer_perf_t peers[256];
+    peer_perf_t peers[DOWNLOAD_MAX_PEERS];  // 256 peers max
     size_t peer_count;
 
     /* Stall detection */
-    uint32_t last_validated_height;
-    uint64_t last_progress_time;
-    uint32_t stall_backoff_height;
-    uint32_t stall_backoff_count;
+    uint32_t last_validated_height;      // Last reported validated height
+    uint64_t last_progress_time;         // When validation last progressed
+
+    /* Adaptive stall timeout (Bitcoin Core style backoff) */
+    uint32_t stall_backoff_height;       // Height we're stuck at
+    uint32_t stall_backoff_count;        // Times we've stolen at this height
 };
 ```
 
