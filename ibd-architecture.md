@@ -227,7 +227,7 @@ bool sync_is_ibd(sync_manager_t *mgr) {
 **IBD mode optimizations**:
 1. **Deferred UTXO writes**: Instead of writing each UTXO change to SQLite, accumulate in memory and flush at end
 2. **Reduced mempool activity**: Don't accept unconfirmed transactions until sync complete
-3. **Aggressive peer management**: Disconnect slow peers more readily
+3. **Tolerant peer management**: Keep slow-but-working peers; only disconnect truly stalled peers
 
 ---
 
@@ -568,19 +568,19 @@ When a peer requests work but the queue is empty yet other peers have work infli
 
 ```c
 void download_mgr_peer_starved(download_mgr_t *mgr, peer_t *peer) {
-    // Find the slowest peer with assigned work
-    peer_perf_t *slowest = find_slowest_peer_with_work(mgr);
+    // Find the peer with the oldest assigned batch
+    peer_perf_t *oldest = find_oldest_batch_holder(mgr);
 
     // Take their batch and return to queue
-    batch_node_t *stolen = steal_batch(slowest);
+    batch_node_t *stolen = steal_batch(oldest);
     queue_push_front(mgr, stolen);  // High priority
 
-    // Disconnect the slow peer immediately
-    mgr->callbacks.disconnect_peer(slowest->peer, PEER_DISCONNECT_STALLED);
+    // The slow peer keeps working on their (now-stolen) batch
+    // If they deliver, we accept it; if not, another peer will
 }
 ```
 
-**Philosophy**: libbitcoin-style ruthless sacrifice. Fast peers should never wait for slow peers when work can be redistributed.
+**Philosophy**: Slow peers still contribute. More slow peers beats fewer fast peers for parallelism. We steal work to unblock fast peers, but don't disconnect slow-but-working peers.
 
 ### 5.6 Block Receipt Flow
 
@@ -1043,10 +1043,15 @@ Pruning is triggered periodically during sync:
                ▼
     ┌─────────────────────┐
     │ Find oldest blk*.dat│
-    │ file that can be    │
-    │ deleted             │
+    │ file (by index)     │
     └──────────┬──────────┘
                │
+               ▼
+    ┌─────────────────────────────┐
+    │ File max height >=         │
+    │ validated height?          │──── YES ────▶ Skip (unvalidated blocks)
+    └──────────┬──────────────────┘
+               │ NO (safe to delete)
                ▼
     ┌─────────────────────┐
     │ Update block index: │
@@ -1066,6 +1071,8 @@ Pruning is triggered periodically during sync:
     │ < prune_target      │
     └─────────────────────┘
 ```
+
+**Critical safety check**: During IBD, blocks are downloaded ahead of validation. Before deleting any block file, we verify that all blocks in the file have been validated (file's max height < validated height). This prevents deleting blocks that validation still needs, which would cause an infinite retry loop.
 
 ### 8.4 Block Status Tracking
 
@@ -1145,10 +1152,10 @@ CORRECT BEHAVIOR:
 #define DOWNLOAD_MAX_BATCHES             200     // Queue capacity (1600 blocks)
 #define DOWNLOAD_MAX_PEERS               256     // Maximum tracked peers
 #define DOWNLOAD_PERF_WINDOW_MS          10000   // 10 second performance window
-#define DOWNLOAD_MIN_RATE_FLOOR          10000.0f // 10 KB/s minimum threshold
-#define DOWNLOAD_ALLOWED_DEVIATION       1.5f    // Stddev for slow detection
-#define DOWNLOAD_MIN_PEERS_FOR_STATS     3       // Minimum for statistics
+#define DOWNLOAD_MIN_PEERS_TO_KEEP       3       // Never evict below this count
 ```
+
+Note: We deliberately avoid speed-based peer eviction. Slow-but-working peers still contribute blocks, and more slow peers beats fewer fast peers for download parallelism. Only truly stalled peers (zero bytes for extended periods) are disconnected.
 
 ### 9.3 Block Storage Constants
 
@@ -1170,8 +1177,7 @@ CORRECT BEHAVIOR:
 | Validation stall (epoch 0) | 1s | 2× per retry | 64s |
 | Validation stall (epoch 1) | 2s | 2× per retry | 64s |
 | Validation stall (epoch 4) | 5s | 2× per retry | 64s |
-| Peer zero delivery | 30s | None | Disconnect |
-| Peer low rate | 60s | None | Disconnect if >16 peers |
+| Peer zero delivery | 20s | None | Disconnect |
 
 ---
 
@@ -1185,7 +1191,7 @@ CORRECT BEHAVIOR:
 | **Header Duplicates** | Accepted (wasteful) | None | None |
 | **Block Batch Size** | 16 | Variable | 8 (fixed) |
 | **Work Distribution** | PUSH (coordinator assigns) | PULL (peers request) | PULL + sticky racing |
-| **Slow Peer Handling** | Cooldown period | Immediate disconnect | Race then disconnect |
+| **Slow Peer Handling** | Cooldown period | Immediate disconnect | Tolerate; steal work if needed |
 | **Stall Timeout** | Fixed 2s | Adaptive | Epoch-based adaptive |
 | **Header Persistence** | Immediate | Deferred | Deferred (batched) |
 | **Event System** | Validation signals | Chase events | Chase events |
@@ -1221,7 +1227,7 @@ BITCOIN ECHO:
 
     Header sync: Single peer + periodic racing (best of both)
     Block sync: PULL model with 8-block batches + sticky racing
-    Slow peers: Race first (preserve investment), then sacrifice
+    Slow peers: Tolerate and keep (parallelism > speed); steal work if blocking
 ```
 
 ### 10.3 Performance Characteristics
@@ -1230,8 +1236,8 @@ BITCOIN ECHO:
 |--------|--------------|------------|------|
 | Header sync time | ~10 min | ~1 min | ~1-2 min |
 | Blocks/second (validation) | ~15-20 | ~25-30 | ~20-25 |
-| Peak peer utilization | 70-80% | 90-95% | 85-90% |
-| Recovery from slow peer | 30-60s | Immediate | 1-10s (racing) |
+| Peak peer utilization | 70-80% | 90-95% | 85-95% |
+| Recovery from blocking peer | 30-60s | Immediate | Immediate (work stealing) |
 | Memory usage (IBD) | ~4 GB | ~2 GB | ~2 GB |
 
 *Note: Performance varies significantly based on hardware, network conditions, and peer quality.*
