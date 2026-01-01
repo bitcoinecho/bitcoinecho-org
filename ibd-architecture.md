@@ -1247,7 +1247,7 @@ BITCOIN ECHO:
 | Header sync time | ~10 min | ~1 min | ~1-2 min |
 | Blocks/second (validation) | ~15-20 | ~25-30 | ~20-25 |
 | Peak peer utilization | 70-80% | 90-95% | 85-95% |
-| Recovery from blocking peer | 30-60s | Immediate | Immediate (work stealing) |
+| Recovery from blocking peer | 30-60s | Immediate | Immediate (sticky racing) |
 | Memory usage (IBD) | ~4 GB | ~2 GB | ~2 GB |
 
 *Note: Performance varies significantly based on hardware, network conditions, and peer quality.*
