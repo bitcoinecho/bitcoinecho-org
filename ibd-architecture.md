@@ -488,6 +488,20 @@ The choice of 8 was determined empirically during IBD optimization testing.
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+**Queue Capacity Flow Control**: The sync manager implements flow control to prevent excessive memory usage. Work is only queued when total pending + inflight blocks is below 8,192 (50% of maximum capacity). This ensures:
+
+- Memory usage stays bounded during header sync (when we learn about millions of blocks)
+- Per-tick overhead is reduced by avoiding repeated storage lookups
+- The download manager always has enough work without excessive buffering
+
+```c
+size_t total_queued = pending + inflight;
+if (total_queued < 8192) {
+    /* Below 50% capacity - queue more work */
+    queue_blocks_from_headers(mgr);
+}
+```
+
 ### 5.4 Peer Performance Tracking
 
 Each peer has associated performance metrics:
@@ -528,6 +542,8 @@ static void update_peer_window(peer_perf_t *perf, uint64_t now) {
     }
 }
 ```
+
+**Grace period for new peers**: The `first_work_time` field is set once when a peer receives their first batch assignment and never reset. This provides a grace period before the peer is evaluated for stall disconnection. New peers aren't penalized before they've had a chance to deliver their first blocks, which prevents churning connections during initial peer discovery.
 
 ### 5.5 The PULL API
 
@@ -610,10 +626,14 @@ This differs from libbitcoin's "sacrifice" model. Our approach prioritizes peer 
               │
               ▼
     ┌─────────────────────┐
-    │ Find block in       │
-    │ peer's batch        │
-    └──────────┬──────────┘
-               │
+    │ Peer has a batch?   │───── NO ────▶ Accept as late delivery
+    └──────────┬──────────┘               (peer was idle/batch split)
+               │ YES
+               ▼
+    ┌─────────────────────┐
+    │ Block in batch?     │───── NO ────▶ Accept as late delivery
+    └──────────┬──────────┘               (block not in assigned range)
+               │ YES
                ▼
     ┌─────────────────────┐
     │ Already received?   │───── YES ────▶ Ignore (sticky race case)
@@ -642,6 +662,13 @@ This differs from libbitcoin's "sacrifice" model. Our approach prioritizes peer 
     │ Ready for new work  │
     └─────────────────────┘
 ```
+
+**Late block delivery handling**: Blocks may arrive after their batch was completed or split. This happens when:
+- A sticky batch race was won by another peer, completing the original peer's batch
+- A peer was removed and re-added, losing their batch assignment
+- Network delays cause blocks to arrive out of order
+
+Rather than rejecting these blocks or corrupting state, late deliveries are gracefully accepted. The block is still valid and useful for validation, even if it can't be attributed to a specific batch.
 
 The `received[]` bitmap is critical for handling the sticky batch racing case, where multiple peers may be downloading the same blocks. Without it, we'd double-decrement `remaining` and corrupt batch state.
 
@@ -1461,5 +1488,6 @@ The [libbitcoin](https://libbitcoin.info/) project pioneered the PULL-based work
 ---
 
 *Created: December 31st, 2025*
+*Updated: January 6th, 2026*
 
 *Bitcoin Echo Project*
