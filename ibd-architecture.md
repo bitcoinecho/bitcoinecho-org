@@ -15,11 +15,9 @@
 7. [Phase 5: Validation Pipeline](#7-phase-5-validation-pipeline)
 8. [Phase 6: Pruning During IBD](#8-phase-6-pruning-during-ibd)
 9. [Constants and Tuning Parameters](#9-constants-and-tuning-parameters)
-10. [Comparison: Echo vs. Bitcoin Core vs. libbitcoin](#10-comparison-echo-vs-bitcoin-core-vs-libbitcoin)
-11. [Conclusion](#11-conclusion)
+10. [Conclusion](#10-conclusion)
 - [Appendix A: Data Structures](#appendix-a-data-structures)
 - [Appendix B: Message Sequences](#appendix-b-message-sequences)
-- [Appendix C: References](#appendix-c-references)
 
 ---
 
@@ -27,7 +25,7 @@
 
 Initial Block Download (IBD) is the critical bootstrapping process where a new Bitcoin node downloads and validates the entire blockchain history. For Bitcoin Echo, this means processing nearly 1 million blocks totaling over 700 GB of data, validating millions of transactions, and building the complete UTXO set from genesis.
 
-This document describes Bitcoin Echo's IBD architecture in exhaustive detail. Our design draws inspiration from libbitcoin's elegant PULL-based work distribution while introducing novel mechanisms for peer racing and stall recovery.
+This document describes Bitcoin Echo's IBD architecture in exhaustive detail, including the PULL-based work distribution model, peer racing mechanisms, and stall recovery strategies.
 
 ### 1.1 Design Goals
 
@@ -154,7 +152,7 @@ typedef struct {
 } node_config_t;
 ```
 
-**Pruning validation**: The minimum prune target is 550 MB (per Bitcoin Core compatibility). This ensures at least one complete epoch of blocks can be stored for serving to other pruned nodes.
+**Pruning validation**: The minimum prune target is 550 MB. This ensures at least one complete epoch of blocks can be stored for serving to other pruned nodes.
 
 ### 3.2 Initialization Sequence
 
@@ -191,7 +189,7 @@ typedef struct {
 
 ### 3.3 Block Storage Format
 
-Block data is stored in Bitcoin Core-compatible `blk*.dat` files:
+Block data is stored in standard `blk*.dat` files:
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -405,27 +403,21 @@ if (headers_received < SYNC_MAX_HEADERS_PER_REQUEST &&
 
 ### 5.1 The PULL Model Philosophy
 
-Unlike Bitcoin Core's PUSH model (coordinator assigns work to peers), Echo uses libbitcoin's PULL model:
+Echo uses a PULL-based work distribution model where peers request work when ready, rather than having work pushed to them by a coordinator:
 
 ```
-PUSH MODEL (Bitcoin Core):
-──────────────────────────
-    Coordinator: "Peer A, download blocks 1-16"
-    Coordinator: "Peer B, download blocks 17-32"
-    Coordinator: "Peer C, download blocks 33-48"
-
-    Problem: What if Peer A is slow? Coordinator must track and reassign.
-
-PULL MODEL (Echo):
-──────────────────
+PULL MODEL:
+───────────
     Peer A: "I'm ready for work" → Gets batch [1-8]
     Peer B: "I'm ready for work" → Gets batch [9-16]
     Peer A: "Done! Ready for more" → Gets batch [17-24]
     Peer C: "I'm ready for work" → Gets batch [25-32]
 
-    Advantage: Fast peers automatically get more work.
-               Slow peers naturally get less.
-               No coordinator overhead for reassignment.
+    Advantages:
+    • Fast peers automatically get more work
+    • Slow peers naturally get less
+    • No coordinator overhead for reassignment
+    • Self-balancing based on actual peer performance
 ```
 
 ### 5.2 The 8-Block Batch
@@ -451,7 +443,7 @@ typedef struct work_batch {
 |------------|------|------|
 | 1 block | Minimal blocking | High per-request overhead |
 | 8 blocks | Balance of parallelism and efficiency | Moderate blocking window |
-| 16 blocks (Core) | Lower overhead | Significant head-of-line blocking |
+| 16 blocks | Lower overhead | Significant head-of-line blocking |
 
 The choice of 8 was determined empirically during IBD optimization testing.
 
@@ -613,7 +605,7 @@ bool download_mgr_peer_request_work(download_mgr_t *mgr, peer_t *peer) {
 - Work is only returned to the queue when a peer is explicitly removed
 - The sticky batch mechanism adds redundancy for blocking blocks without punishing anyone
 
-This differs from libbitcoin's "sacrifice" model. Our approach prioritizes peer retention over aggressive throughput optimization. Slow-but-working peers still contribute blocks, and connection establishment is not free. Only truly stalled peers (0 B/s for extended periods) are disconnected via the periodic performance check.
+Our approach prioritizes peer retention over aggressive throughput optimization. Slow-but-working peers still contribute blocks, and connection establishment is not free. Only truly stalled peers (0 B/s for extended periods) are disconnected via the periodic performance check.
 
 ### 5.6 Block Receipt Flow
 
@@ -1222,73 +1214,9 @@ Note: We deliberately avoid speed-based peer eviction. Slow-but-working peers st
 
 ---
 
-## 10. Comparison: Echo vs. Bitcoin Core vs. libbitcoin
+## 10. Conclusion
 
-### 10.1 Feature Matrix
-
-| Feature | Bitcoin Core | libbitcoin | Echo |
-|---------|--------------|------------|------|
-| **Header Strategy** | Parallel to 4+ peers | Single peer | Single peer + racing |
-| **Header Duplicates** | Accepted (wasteful) | None | None |
-| **Block Batch Size** | 16 | Variable | 8 (fixed) |
-| **Work Distribution** | PUSH (coordinator assigns) | PULL (peers request) | PULL + sticky racing |
-| **Slow Peer Handling** | Cooldown period | Immediate disconnect | Cooperative: only disconnect truly stalled (0 B/s) |
-| **Stall Timeout** | Fixed 2s | Adaptive | Epoch-based adaptive |
-| **Header Persistence** | Immediate | Deferred | Deferred (batched) |
-| **Event System** | Validation signals | Chase events | Chase events |
-
-### 10.2 Architectural Philosophy Comparison
-
-```
-BITCOIN CORE:
-─────────────
-    Philosophy: Conservative, battle-tested, backward compatible
-    Strengths: Robust against edge cases, extensive testing
-    Trade-offs: Less aggressive optimization, larger codebase
-
-    Header sync: Multiple peers, accept duplicates
-    Block sync: PUSH model with 16-block batches
-    Slow peers: Cooldown, then disconnect
-
-LIBBITCOIN:
-───────────
-    Philosophy: High performance, modular architecture
-    Strengths: Fastest IBD implementation, elegant design
-    Trade-offs: Less widespread deployment, steeper learning curve
-
-    Header sync: Single peer (simple, no duplicates)
-    Block sync: PULL model with variable batches
-    Slow peers: Immediate sacrifice
-
-BITCOIN ECHO:
-─────────────
-    Philosophy: Combine best of both, optimize for ossification
-    Strengths: Racing without waste, adaptive timeouts
-    Trade-offs: New implementation, less battle-tested
-
-    Header sync: Single peer + periodic racing (best of both)
-    Block sync: PULL model with 8-block batches + sticky racing
-    Slow peers: Cooperative model - tolerate slow-but-working peers;
-                only disconnect truly stalled (0 B/s for 30+ seconds)
-```
-
-### 10.3 Performance Characteristics
-
-| Metric | Bitcoin Core | libbitcoin | Echo |
-|--------|--------------|------------|------|
-| Header sync time | ~10 min | ~1 min | ~1-2 min |
-| Blocks/second (validation) | ~15-20 | ~25-30 | ~20-25 |
-| Peak peer utilization | 70-80% | 90-95% | 85-95% |
-| Recovery from blocking peer | 30-60s | Immediate | Immediate (sticky racing) |
-| Memory usage (IBD) | ~4 GB | ~2 GB | ~2 GB |
-
-*Note: Performance varies significantly based on hardware, network conditions, and peer quality.*
-
----
-
-## 11. Conclusion
-
-### 11.1 The Clockwork Summary
+### 10.1 The Clockwork Summary
 
 Bitcoin Echo's IBD architecture is a finely-tuned mechanism with interlocking components:
 
@@ -1301,7 +1229,7 @@ Bitcoin Echo's IBD architecture is a finely-tuned mechanism with interlocking co
 7. **Chase Events**: Decouple download from validation through async events
 8. **Pruning-as-you-go**: Bound disk usage without sacrificing parallelism
 
-### 11.2 Design Principles
+### 10.2 Design Principles
 
 The architecture embodies several key principles:
 
@@ -1315,7 +1243,7 @@ The architecture embodies several key principles:
 
 **Batch for efficiency, but not too much**: 8 blocks balances per-request overhead against head-of-line blocking risk.
 
-### 11.3 The Path to Ossification
+### 10.3 The Path to Ossification
 
 This IBD architecture, once proven through extended mainnet testing and security audit, becomes part of Bitcoin Echo's frozen artifact. The careful engineering documented here ensures that future nodes can bootstrap efficiently from genesis, validating every block in Bitcoin's history without trusting any external source.
 
@@ -1339,7 +1267,7 @@ struct sync_manager {
     sync_mode_t mode;                    // IDLE, HEADERS, BLOCKS, DONE, STALLED
 
     /* Peer tracking */
-    peer_sync_state_t peers[SYNC_MAX_PEERS];  // 100 peers (matches libbitcoin-node)
+    peer_sync_state_t peers[SYNC_MAX_PEERS];  // Maximum tracked peers
     size_t peer_count;
 
     /* Best known header chain */
@@ -1368,7 +1296,7 @@ struct sync_manager {
     uint64_t last_progress_time;
     uint64_t stalling_timeout_ms;        // Adaptive timeout (2s → 64s max)
 
-    /* Chase integration (libbitcoin-style event-driven validation) */
+    /* Chase integration (event-driven validation) */
     chase_dispatcher_t *dispatcher;
     chase_subscription_t *subscription;
 };
@@ -1399,7 +1327,7 @@ struct download_mgr {
     uint32_t last_validated_height;      // Last reported validated height
     uint64_t last_progress_time;         // When validation last progressed
 
-    /* Adaptive stall timeout (Bitcoin Core style backoff) */
+    /* Adaptive stall timeout (exponential backoff) */
     uint32_t stall_backoff_height;       // Height we're stuck at
     uint32_t stall_backoff_count;        // Times we've stolen at this height
 };
@@ -1470,20 +1398,6 @@ NODE                     PEER A              PEER B              VALIDATION
  │     [Ignored - already validated]           │                     │
  │                         │                   │                     │
 ```
-
----
-
-## Appendix C: References
-
-Bitcoin Echo's IBD architecture draws inspiration from two foundational implementations:
-
-### libbitcoin
-
-The [libbitcoin](https://libbitcoin.info/) project pioneered the PULL-based work distribution model and chase event system that Echo adapts. Its elegant approach to peer management — where peers request work rather than being assigned it — fundamentally shapes our download engine design.
-
-### Bitcoin Core
-
-[Bitcoin Core](https://bitcoincore.org/) remains the reference implementation against which all Bitcoin software is measured. Its battle-tested IBD approach, timeout constants, and protocol handling inform Echo's design decisions, even where we diverge (such as batch sizes and stall recovery strategies).
 
 ---
 
